@@ -5,10 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Drone
-  - WindTurbineBlue
-  - WindTurbineRed
-  - WindTurbineWhite
   - WindTurbine
+  - HubTurbine
   layers:
   - Default
   - TransparentFX

@@ -18,11 +18,13 @@ public class MapReadIn : MonoBehaviour
             
             if (tmp[0]=="t"){
                 GameObject tmp_turbine= Instantiate(turbinePrefab[1], new Vector3(float.Parse(tmp[2]), 100, float.Parse(tmp[3])), Quaternion.identity) as GameObject;
+                tmp_turbine.tag= "WindTurbine";
                 WindTurbine turbine= tmp_turbine.GetComponent<WindTurbine>();
                 turbine.id= tmp[1].Trim();
             } 
             else if (tmp[0]=="c"){
                 GameObject tmp_turbine= Instantiate(turbinePrefab[0], new Vector3(float.Parse(tmp[2]), 100, float.Parse(tmp[3])), Quaternion.identity) as GameObject;
+                tmp_turbine.tag= "HubTurbine";
                 HubTurbine turbine= tmp_turbine.GetComponent<HubTurbine>();
                 turbine.id= tmp[1].Trim();
             }

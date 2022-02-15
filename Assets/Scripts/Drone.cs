@@ -14,95 +14,61 @@ public class Drone : MonoBehaviour {
     Vector3 position;
     Vector3 velocity;
 
+    // To remove
+    Transform target;
 
-    void Start()
+
+    public void Start()
     {
         position = transform.position;
-        // targets = GameObject.FindGameObjectsWithTag("WindTurbine");
+
+        // To remove
+        GameObject[] targets = GameObject.FindGameObjectsWithTag("HubTurbine");
         
-        // foreach (GameObject t in targets)
-        // {
-        //     if (t.GetComponent<WindTurbine>()) 
-        //     {
-        //         target = t.transform;
-        //     }
-        // }
+        foreach (GameObject t in targets)
+        {
+            if (t.GetComponent<HubTurbine>()) 
+            {
+                target = t.transform;
+            }
+        }
     }
 
-    void Update() 
+    public void Update() 
     {
-        // SetState();
-    }
-
-    void SetState()
-    {
-        // switch (state) 
-        // {
-        //     case "Moving":
-        //         Move();
-        //         break;
-
-        //     case "Idle":
-        //         Idle();
-        //         break;
-        // }
+        Move();
     }
 
     void Move() 
     {
-        // position = transform.position;
+        position = transform.position;
 
-        // float singleStep = steerStrength * Time.deltaTime;
+        float singleStep = steer_strength * Time.deltaTime;
 
-        // Vector3 targetDirection = target.position - transform.position;
-        // Vector3 desiredDirection = Vector3.RotateTowards(transform.forward, targetDirection, singleStep, 0.0f);
+        Vector3 targetDirection = target.position - transform.position;
+        Vector3 desiredDirection = Vector3.RotateTowards(transform.forward, targetDirection, singleStep, 0.0f);
 
-        // Vector3 desiredVelocity = desiredDirection * maxSpeed;
-        // Vector3 desiredSteeringForce = (desiredVelocity - velocity) * steerStrength;
-        // Vector3 acceleration = Vector3.ClampMagnitude(desiredSteeringForce, steerStrength);
+        Vector3 desiredVelocity = desiredDirection * max_speed;
+        Vector3 desiredSteeringForce = (desiredVelocity - velocity) * steer_strength;
+        Vector3 acceleration = Vector3.ClampMagnitude(desiredSteeringForce, steer_strength);
 
-        // velocity = Vector3.ClampMagnitude(velocity + acceleration * Time.deltaTime, maxSpeed);
-        // position += velocity * Time.deltaTime;
+        velocity = Vector3.ClampMagnitude(velocity + acceleration * Time.deltaTime, max_speed);
+        position += velocity * Time.deltaTime;
         
-        // transform.rotation = Quaternion.LookRotation(desiredDirection);
-        // transform.position = new Vector3(position.x, Mathf.Clamp(position.y, minHeight, maxHeight), position.z);
-    }
-
-    void Idle()
-    {
-        //Move up and down the wind turbine
-        /*
-        timer += Time.deltaTime;
-        float oscillator = Mathf.Cos(timer * 2 / Mathf.PI) * 50;
-        float newPosY = transform.position.y + Time.deltaTime * oscillator;
-
-        Debug.Log("oscillator: " + oscillator);
-
-        transform.position  = new Vector3(transform.position.x, newPosY, transform.position.z);
-        */
-
-        // transform.RotateAround(target.transform.position, Vector3.up, idleSpeed * Time.deltaTime);
-        
+        transform.rotation = Quaternion.LookRotation(desiredDirection);
+        transform.position = new Vector3(position.x, Mathf.Clamp(position.y, 0, 1000), position.z);
     }
 
     void OnTriggerEnter(Collider collider)
     {
-        // if (collider.gameObject.tag == "WindTurbine")
-        // {
-        //     this.state = "Idle";
-        // }
-        // else if (collider.gameObject.tag == "Drone")
-        // {
-
-        // }
+        if (collider.gameObject.tag == "HubTurbine"){
+            if (collider.GetComponent<HubTurbine>().HoldDrone(this, 2)){
+                Object.Destroy(this.gameObject);
+            }
+        }
     }
 
     void OnTriggerExit(Collider collider)
     {
-        // if (collider.gameObject.tag == "WindTurbine")
-        // {
-        //     this.state = "Moving";
-        // }
-        
     }
 }
