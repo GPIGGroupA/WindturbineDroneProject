@@ -2,76 +2,70 @@ using UnityEngine;
 
 public class Drone : MonoBehaviour {
 
-    public float battery_percentage= 100;
-    public string type;
-    public float maxSpeed = 200;
-    public float steerStrength = 100;
-    public float idleSpeed = 90;
-    public float idleDistance = 10;
-    public float minHeight = 3;
-    public float maxHeight = 500;
-    public GameObject[] targets;
-    public Transform target;
+    // Drone Control Infomation
+    public float battery_percentage= 100F;
+    private enum State {Parked, CollectJobs, TakeOff, Move, DoJob, Land}
+    private State current_state = State.Parked;
 
+
+    // Unity Infomation
+    private float max_speed = 200;
+    private float steer_strength = 100;
     Vector3 position;
     Vector3 velocity;
-    Vector3 desiredDirection;
 
-    float timer = 0f;
-
-    public string state = "Moving";
 
     void Start()
     {
         position = transform.position;
-        targets = GameObject.FindGameObjectsWithTag("WindTurbine");
+        // targets = GameObject.FindGameObjectsWithTag("WindTurbine");
         
-        foreach (GameObject t in targets)
-        {
-            if (t.GetComponent<WindTurbine>()) 
-            {
-                target = t.transform;
-            }
-        }
+        // foreach (GameObject t in targets)
+        // {
+        //     if (t.GetComponent<WindTurbine>()) 
+        //     {
+        //         target = t.transform;
+        //     }
+        // }
     }
 
     void Update() 
     {
-        SetState();
+        // SetState();
     }
 
     void SetState()
     {
-        switch (state) 
-        {
-            case "Moving":
-                Move();
-                break;
+        // switch (state) 
+        // {
+        //     case "Moving":
+        //         Move();
+        //         break;
 
-            case "Idle":
-                Idle();
-                break;
-        }
+        //     case "Idle":
+        //         Idle();
+        //         break;
+        // }
     }
 
     void Move() 
     {
-        position = transform.position;
+        // position = transform.position;
 
-        float singleStep = steerStrength * Time.deltaTime;
+        // float singleStep = steerStrength * Time.deltaTime;
 
-        Vector3 targetDirection = target.position - transform.position;
-        Vector3 desiredDirection = Vector3.RotateTowards(transform.forward, targetDirection, singleStep, 0.0f);
+        // Vector3 targetDirection = target.position - transform.position;
+        // Vector3 desiredDirection = Vector3.RotateTowards(transform.forward, targetDirection, singleStep, 0.0f);
 
-        Vector3 desiredVelocity = desiredDirection * maxSpeed;
-        Vector3 desiredSteeringForce = (desiredVelocity - velocity) * steerStrength;
-        Vector3 acceleration = Vector3.ClampMagnitude(desiredSteeringForce, steerStrength);
+        // Vector3 desiredVelocity = desiredDirection * maxSpeed;
+        // Vector3 desiredSteeringForce = (desiredVelocity - velocity) * steerStrength;
+        // Vector3 acceleration = Vector3.ClampMagnitude(desiredSteeringForce, steerStrength);
 
-        velocity = Vector3.ClampMagnitude(velocity + acceleration * Time.deltaTime, maxSpeed);
-        position += velocity * Time.deltaTime;
+        // velocity = Vector3.ClampMagnitude(velocity + acceleration * Time.deltaTime, maxSpeed);
+        // position += velocity * Time.deltaTime;
         
-        transform.rotation = Quaternion.LookRotation(desiredDirection);
-        transform.position = new Vector3(position.x, Mathf.Clamp(position.y, minHeight, maxHeight), position.z);
+        // transform.rotation = Quaternion.LookRotation(desiredDirection);
+        // transform.position = new Vector3(position.x, Mathf.Clamp(position.y, minHeight, maxHeight), position.z);
     }
 
     void Idle()
@@ -87,28 +81,28 @@ public class Drone : MonoBehaviour {
         transform.position  = new Vector3(transform.position.x, newPosY, transform.position.z);
         */
 
-        transform.RotateAround(target.transform.position, Vector3.up, idleSpeed * Time.deltaTime);
+        // transform.RotateAround(target.transform.position, Vector3.up, idleSpeed * Time.deltaTime);
         
     }
 
     void OnTriggerEnter(Collider collider)
     {
-        if (collider.gameObject.tag == "WindTurbine")
-        {
-            this.state = "Idle";
-        }
-        else if (collider.gameObject.tag == "Drone")
-        {
+        // if (collider.gameObject.tag == "WindTurbine")
+        // {
+        //     this.state = "Idle";
+        // }
+        // else if (collider.gameObject.tag == "Drone")
+        // {
 
-        }
+        // }
     }
 
     void OnTriggerExit(Collider collider)
     {
-        if (collider.gameObject.tag == "WindTurbine")
-        {
-            this.state = "Moving";
-        }
+        // if (collider.gameObject.tag == "WindTurbine")
+        // {
+        //     this.state = "Moving";
+        // }
         
     }
 }

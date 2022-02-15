@@ -5,24 +5,27 @@ using UnityEngine;
 public class WindTurbine : MonoBehaviour
 {
     public string id;
-    public int problem_level= 1;
-    const float CHANCEOFLEVEL2 = 0.00001F;
-    const float CHANCEOFLEVEL3 = 0.000001F;
-    const float CHANCEOFLEVEL4 = 0.0000001F;
+    public float problem_level= 0;
+    public int last_maintenance;
+    private float chance_of_major_failures= 0.00001F;
+    private float problem_level_growth= 1.002F;
+    private float major_failure_starting_level= 0.0001F;
     
     // Start is called before the first frame update
     void Start()
     {
-        
+        last_maintenance= Time.frameCount;
     }
 
     // Update is called once per frame
     void Update()
     {
-        float chance= Random.Range(0F, 1F);
-        if (chance < CHANCEOFLEVEL4){problem_level=4;}
-        else if (chance < CHANCEOFLEVEL3){problem_level=3;}
-        else if (chance < CHANCEOFLEVEL2){problem_level=2;}
-
+        if (problem_level < 1F) {
+            if (Random.Range(0F, 1F) < chance_of_major_failures){
+                problem_level+= major_failure_starting_level;
+            }
+            problem_level= problem_level*problem_level_growth;
+            if (problem_level > 1){problem_level= 1;}
+        }
     }
 }

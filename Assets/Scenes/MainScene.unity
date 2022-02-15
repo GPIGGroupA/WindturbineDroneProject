@@ -180,7 +180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   turbinePrefab:
-  - {fileID: 8241591337231955257, guid: a428418594b263a449fccac01d6c3239, type: 3}
+  - {fileID: 6961785427912044474, guid: 83bdb0a52bd6da64eb9449071d8e97ac, type: 3}
   - {fileID: 4756599707808474267, guid: fe6f8ecc49d41424aa61460c6a147985, type: 3}
 --- !u!1001 &425119835
 PrefabInstance:
@@ -481,9 +481,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dronePrefab:
-  - {fileID: 9016162441955354629, guid: 7699d8f3a6e9c4ac2aac33299f34c7da, type: 3}
-  - {fileID: 1253491100846110840, guid: b8c187ee98e52400e83f6b665250c37b, type: 3}
-  - {fileID: 877864949652879375, guid: f901daf0927cb4cfbb2cb6b3e2c6ce03, type: 3}
+  - {fileID: 4305180593109918609, guid: b8c187ee98e52400e83f6b665250c37b, type: 3}
+  - {fileID: 4507032809154786371, guid: f901daf0927cb4cfbb2cb6b3e2c6ce03, type: 3}
 --- !u!1 &1665555691
 GameObject:
   m_ObjectHideFlags: 0
