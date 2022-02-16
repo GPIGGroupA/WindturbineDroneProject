@@ -4,8 +4,8 @@ public class Drone : MonoBehaviour {
 
     // Drone Control Infomation
     public float battery_percentage= 100F;
-    private enum State {Parked, CollectJobs, TakeOff, Move, DoJob, Land}
-    private State current_state = State.Parked;
+    private enum State {CollectJobs, TakeOff, Move, DoJob, Land}
+    private State current_state = State.TakeOff;
 
 
     // Unity Infomation
@@ -14,38 +14,14 @@ public class Drone : MonoBehaviour {
     Vector3 position;
     Vector3 velocity;
 
-    // To remove
-    Transform target;
 
-
-    public void Start()
+    // Unity things
+    void UnityMove(Vector3 target) 
     {
-        position = transform.position;
-
-        // To remove
-        GameObject[] targets = GameObject.FindGameObjectsWithTag("HubTurbine");
-        
-        foreach (GameObject t in targets)
-        {
-            if (t.GetComponent<HubTurbine>()) 
-            {
-                target = t.transform;
-            }
-        }
-    }
-
-    public void Update() 
-    {
-        Move();
-    }
-
-    void Move() 
-    {
-        position = transform.position;
-
         float singleStep = steer_strength * Time.deltaTime;
+        position = transform.position;
 
-        Vector3 targetDirection = target.position - transform.position;
+        Vector3 targetDirection = target - transform.position;
         Vector3 desiredDirection = Vector3.RotateTowards(transform.forward, targetDirection, singleStep, 0.0f);
 
         Vector3 desiredVelocity = desiredDirection * max_speed;
@@ -54,14 +30,15 @@ public class Drone : MonoBehaviour {
 
         velocity = Vector3.ClampMagnitude(velocity + acceleration * Time.deltaTime, max_speed);
         position += velocity * Time.deltaTime;
-        
+
+        desiredDirection.y= 0;
         transform.rotation = Quaternion.LookRotation(desiredDirection);
-        transform.position = new Vector3(position.x, Mathf.Clamp(position.y, 0, 1000), position.z);
+        transform.position = new Vector3(position.x, Mathf.Clamp(position.y, 0, 2000), position.z);
     }
 
     void OnTriggerEnter(Collider collider)
     {
-        if (collider.gameObject.tag == "HubTurbine"){
+        if (current_state==State.Land && collider.gameObject.tag == "HubTurbine"){
             if (collider.GetComponent<HubTurbine>().HoldDrone(this, 2)){
                 Object.Destroy(this.gameObject);
             }
@@ -70,5 +47,59 @@ public class Drone : MonoBehaviour {
 
     void OnTriggerExit(Collider collider)
     {
+    }
+
+
+    // Control things
+    public void Start()
+    {
+        position = transform.position;
+    }
+
+    public void Update() 
+    {
+        StateCheck();
+
+        switch(current_state){
+            case State.TakeOff:
+                TakeOff();
+                break;
+
+            case State.Move:
+                break;
+
+            case State.Land:
+                Land();
+                break;
+        }
+
+        battery_percentage-= 0.1F;
+        velocity = Vector3.Scale(velocity, new Vector3(0.99F, 0.99F, 0.99F));
+    }
+
+    void StateCheck()
+    {
+        if (current_state== State.TakeOff && position.y >= 600) {
+            current_state= State.Move;
+        }
+        if (battery_percentage<10F) {
+            current_state= State.Land;
+        }
+    }
+
+
+    // State things
+    void Land()
+    {
+        Vector3 target= position;
+        target.y= 100F;  
+        UnityMove(target);
+    }
+
+    void TakeOff()
+    {
+        Vector3 target= position;
+        target.y= 1000F;  
+        UnityMove(target);
     }
 }

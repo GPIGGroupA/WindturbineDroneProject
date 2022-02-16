@@ -49,6 +49,10 @@ public class HubTurbine : WindTurbine
                         charging_pads[i].battery_percentage= 100F;
                     }
                 }
+                // TODO: Remove 
+                else {
+                    ReleaseDrone(i);
+                }
             }
         }
     }

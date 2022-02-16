@@ -114,4 +114,4 @@ MonoBehaviour:
   last_maintenance: 0
   delivary_drone_prefab: {fileID: 4305180593109918609, guid: b8c187ee98e52400e83f6b665250c37b, type: 3}
   maintenance_drone_prefab: {fileID: 4507032809154786371, guid: f901daf0927cb4cfbb2cb6b3e2c6ce03, type: 3}
-  chargeRate: 0.00001
+  chargeRate: 0.1
