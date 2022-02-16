@@ -43,9 +43,10 @@
      <Compile Include="Assets\Scripts\GameController.cs" />
      <Compile Include="Assets\Scripts\Drone.cs" />
      <Compile Include="Assets\Packages\LowPolyWater\Water.cs" />
-     <Compile Include="Assets\Scripts\DroneSpawner.cs" />
      <Compile Include="Assets\Scripts\MaintenanceDrone.cs" />
      <Compile Include="Assets\Scripts\DelivaryDrone.cs" />
+     <Compile Include="Assets\Scripts\DroneSpawner.cs" />
+     <Compile Include="Assets\Scripts\Job.cs" />
      <None Include="Assets\turbinecoords.txt" />
      <None Include="Assets\Packages\Fantasy Skybox FREE\Readme.txt" />
     <Reference Include="UnityEngine">

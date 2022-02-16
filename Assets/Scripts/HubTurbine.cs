@@ -19,23 +19,35 @@ public struct ChargingPad
 
 public class HubTurbine : WindTurbine
 {
-
-    public GameObject delivary_drone_prefab;
-    public GameObject maintenance_drone_prefab;
+    // HubTurbine Infomation
     public ChargingPad[] charging_pads = new ChargingPad[9];
     public float chargeRate = 0.00001F;
+    public List<Job> jobs_queue = new List<Job>();
+
+
+    // Unity Infomation
+    public GameObject delivary_drone_prefab;
+    public GameObject maintenance_drone_prefab;
 
     
-    // Start is called before the first frame update
+    // Control things
     void Start()
     {
+        // TODO: Remove
         charging_pads[0].state= pad_state.MaintainenceDrone;
         charging_pads[0].battery_percentage = 90F;
+        jobs_queue.Add(new Job("A31", JobType.Scan, 0, 0));
     }
 
-    // Update is called once per frame
     void Update()
     {
+
+        if (shouldDeployNewDrone()){
+            int i = deployWhichDrone();
+            if (i != -1){
+                ReleaseDrone(i);
+            }
+        }
         
         // Charge Drones
         for (int i=0; i<charging_pads.Length; i++){
@@ -49,14 +61,12 @@ public class HubTurbine : WindTurbine
                         charging_pads[i].battery_percentage= 100F;
                     }
                 }
-                // TODO: Remove 
-                else {
-                    ReleaseDrone(i);
-                }
             }
         }
     }
 
+
+    // Utilitys
     public bool ReleaseDrone(int ind)
     {
         switch (charging_pads[ind].state) 
@@ -98,5 +108,41 @@ public class HubTurbine : WindTurbine
         }
 
         return true;
+    }
+
+
+    // Heuristics
+    public bool shouldDeployNewDrone()
+    {
+        for (int i=0; i<charging_pads.Length; i++){
+            if (
+                charging_pads[i].state==pad_state.DelivaryDrone || 
+                charging_pads[i].state==pad_state.MaintainenceDrone
+            ){
+                if (charging_pads[i].battery_percentage >= 100F) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public int deployWhichDrone()
+    {
+        int max_ind= -1;
+
+        for (int i=0; i<charging_pads.Length; i++){
+            if (
+                charging_pads[i].state==pad_state.DelivaryDrone || 
+                charging_pads[i].state==pad_state.MaintainenceDrone
+            ){
+                if (max_ind==-1 || charging_pads[i].battery_percentage > charging_pads[max_ind].battery_percentage) {
+                    max_ind = i;
+                }
+            }
+        }
+
+        return max_ind;
     }
 }

@@ -1,11 +1,18 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+
+public enum State {Comission, TakeOff, Move, Land, Decomission, Idle}
+
 
 public class Drone : MonoBehaviour {
 
-    // Drone Control Infomation
+    // Drone Infomation
     public float battery_percentage= 100F;
-    private enum State {CollectJobs, TakeOff, Move, DoJob, Land}
-    private State current_state = State.TakeOff;
+    private State current_state = State.Comission;
+    Vector3 target;
+    bool has_target= false;
+    private List<Job> jobs_queue= new List<Job>();
 
 
     // Unity Infomation
@@ -16,23 +23,23 @@ public class Drone : MonoBehaviour {
 
 
     // Unity things
-    void UnityMove(Vector3 target) 
+    void UnityMove(Vector3 direction) 
     {
         float singleStep = steer_strength * Time.deltaTime;
         position = transform.position;
 
-        Vector3 targetDirection = target - transform.position;
-        Vector3 desiredDirection = Vector3.RotateTowards(transform.forward, targetDirection, singleStep, 0.0f);
-
-        Vector3 desiredVelocity = desiredDirection * max_speed;
-        Vector3 desiredSteeringForce = (desiredVelocity - velocity) * steer_strength;
-        Vector3 acceleration = Vector3.ClampMagnitude(desiredSteeringForce, steer_strength);
+        Vector3 nextFrameDirection = Vector3.RotateTowards(transform.forward, direction, singleStep, 0.0f);
+        Vector3 nextFrameVelocity = nextFrameDirection * max_speed;
+        Vector3 nextFrameSteeringForce = (nextFrameVelocity - velocity) * steer_strength;
+        Vector3 acceleration = Vector3.ClampMagnitude(nextFrameSteeringForce, steer_strength);
 
         velocity = Vector3.ClampMagnitude(velocity + acceleration * Time.deltaTime, max_speed);
         position += velocity * Time.deltaTime;
 
-        desiredDirection.y= 0;
-        transform.rotation = Quaternion.LookRotation(desiredDirection);
+        nextFrameDirection.y= 0F;
+        if (nextFrameDirection != Vector3.zero){
+            transform.rotation = Quaternion.LookRotation(nextFrameDirection);
+        }
         transform.position = new Vector3(position.x, Mathf.Clamp(position.y, 0, 2000), position.z);
     }
 
@@ -59,19 +66,7 @@ public class Drone : MonoBehaviour {
     public void Update() 
     {
         StateCheck();
-
-        switch(current_state){
-            case State.TakeOff:
-                TakeOff();
-                break;
-
-            case State.Move:
-                break;
-
-            case State.Land:
-                Land();
-                break;
-        }
+        StateAct();
 
         battery_percentage-= 0.1F;
         velocity = Vector3.Scale(velocity, new Vector3(0.99F, 0.99F, 0.99F));
@@ -87,19 +82,61 @@ public class Drone : MonoBehaviour {
         }
     }
 
+    void StateAct()
+    {
+        switch(current_state){
+            case State.TakeOff:
+                TakeOff();
+                break;
+
+            case State.Move:
+                Move();
+                break;
+
+            case State.Land:
+                Land();
+                break;
+
+            case State.Comission:
+                Comission();
+                break;
+
+            case State.Decomission:
+                Decomission();
+                break;
+        }
+    }
+
 
     // State things
     void Land()
     {
-        Vector3 target= position;
+        target= position;
         target.y= 100F;  
-        UnityMove(target);
+        Move();
     }
 
     void TakeOff()
     {
-        Vector3 target= position;
+        target= position;
         target.y= 1000F;  
-        UnityMove(target);
+        Move();
     }
+
+    void Comission()
+    {
+
+    }
+
+    void Move()
+    {
+        Vector3 targetDirection = target - transform.position;
+        UnityMove(targetDirection);
+    }
+
+    void Decomission()
+    {
+
+    }
+
 }
