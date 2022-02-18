@@ -23,7 +23,7 @@ public class Drone : MonoBehaviour {
 
 
     // Unity things
-    void UnityMove(Vector3 direction) 
+    void UnityMove(Vector3 direction) // Takes a direction the drone wants to move, but this is the reality limitiations, e.g. momentum, rotation speed
     {
         float singleStep = steer_strength * Time.deltaTime;
         position = transform.position;
@@ -46,7 +46,7 @@ public class Drone : MonoBehaviour {
     void OnTriggerEnter(Collider collider)
     {
         if (current_state==State.Land && collider.gameObject.tag == "HubTurbine"){
-            if (collider.GetComponent<HubTurbine>().HoldDrone(this, 2)){
+            if (collider.GetComponent<HubTurbine>().pad.holdChargingDrone(this, 2)){
                 Object.Destroy(this.gameObject);
             }
         }
@@ -139,4 +139,15 @@ public class Drone : MonoBehaviour {
 
     }
 
+
+    // Utilitys
+    public int whichJobToDo(Vector3 startpoi){
+        return -1;
+    }
+
+
+    // Heuristics
+    public float estimatedBatteryCostForJob(Job job, Vector3 startpoi){
+        return 0.0F;
+    }
 }
