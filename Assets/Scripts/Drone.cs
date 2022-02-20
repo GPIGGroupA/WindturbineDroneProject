@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum State {Comission, TakeOff, Move, Land, Decomission, Idle}
+public enum State {Parked, Comission, TakeOff, Move, Land, Decomission, Idle}
 
 
 public class Drone : MonoBehaviour {
 
     // Drone Infomation
     public float battery_percentage= 100F;
-    private State current_state = State.Comission;
+    public State current_state = State.Parked;
     Vector3 target;
     bool has_target= false;
     private List<Job> jobs_queue= new List<Job>();
@@ -45,11 +45,11 @@ public class Drone : MonoBehaviour {
 
     void OnTriggerEnter(Collider collider)
     {
-        if (current_state==State.Land && collider.gameObject.tag == "HubTurbine"){
-            if (collider.GetComponent<HubTurbine>().pad.holdChargingDrone(this, 2)){
-                Object.Destroy(this.gameObject);
-            }
-        }
+        // if (current_state==State.Land && collider.gameObject.tag == "HubTurbine"){
+        //     if (collider.GetComponent<HubTurbine>().pad.holdChargingDrone(this, 2)){
+        //         Object.Destroy(this.gameObject);
+        //     }
+        // }
     }
 
     void OnTriggerExit(Collider collider)
@@ -65,8 +65,12 @@ public class Drone : MonoBehaviour {
 
     public void Update() 
     {
+        if (current_state==State.Parked){return;}
+
         StateCheck();
         StateAct();
+
+        if (current_state==State.Comission || current_state==State.Decomission){return;}
 
         battery_percentage-= 0.1F;
         velocity = Vector3.Scale(velocity, new Vector3(0.99F, 0.99F, 0.99F));
@@ -144,7 +148,6 @@ public class Drone : MonoBehaviour {
     public int whichJobToDo(Vector3 startpoi){
         return -1;
     }
-
 
     // Heuristics
     public float estimatedBatteryCostForJob(Job job, Vector3 startpoi){

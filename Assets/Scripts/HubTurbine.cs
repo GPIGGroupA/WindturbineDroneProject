@@ -7,7 +7,6 @@ public class HubTurbine : WindTurbine
 {
     // HubTurbine Infomation
     public LandingPad pad = new LandingPad(9, 0);
-    public float chargeRate = 0.00001F;
     public List<Job> jobs_queue = new List<Job>();
 
 
@@ -21,47 +20,27 @@ public class HubTurbine : WindTurbine
     {
         // TODO: Remove
         jobs_queue.Add(new Job("A31", JobType.Scan, 0, 0));
+
+        GameObject drone = Instantiate(
+                delivary_drone_prefab, 
+                this.transform.position + new Vector3(0, 105, 0), 
+                Quaternion.identity
+            );
+        pad.holdChargingDrone(drone, 0);
     }
 
     void Update()
     {
-
         if (shouldDeployNewDrone()){
-            int i = whichDroneToDeply();
-            if (i != -1){
-                ReleaseDrone(i);
-            }
+            commisionDrone(whichDroneToDeply());
         }
-
         pad.Update();
     }
 
 
     // Utilitys
-    public bool ReleaseDrone(int ind)
-    {
-        // TODO: Somehow add drone class into the init drone
-        Drone res= pad.relaseChargingDrone(ind);
-
-        if (res.GetType() == typeof(DelivaryDrone)){
-            Instantiate(
-                delivary_drone_prefab, 
-                this.transform.position + new Vector3(0, 105, 0), 
-                Quaternion.identity
-            );
-        }
-        else if (res.GetType() == typeof(MaintenanceDrone)){
-            Instantiate(
-                maintenance_drone_prefab, 
-                this.transform.position + new Vector3(0, 105, 0), 
-                Quaternion.identity
-            );
-        }
-        else {
-            return false;
-        }
-
-        return true;
+    public void commisionDrone(int ind){
+        pad.startupChargingDrone(ind);
     }
 
     public List<Job> buildJobListForDrone(Drone drone){
@@ -74,12 +53,12 @@ public class HubTurbine : WindTurbine
     // Heuristics
     public bool shouldDeployNewDrone()
     {
-        return false;
+        return true;
     }
 
     public int whichDroneToDeply()
     {
-        return -1;
+        return 0;
     }
 
     public float jobValueBasedOfCurrentJobs(List<Job> currentJobs){
