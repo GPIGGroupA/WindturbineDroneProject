@@ -1,66 +1,74 @@
 using UnityEngine;
 
-[AddComponentMenu("Camera-Control/CameraMovement")]
-public class CameraMovement : MonoBehaviour {
-    
-    public enum RotationAxes { MouseXAndY = 0, MouseX = 1, MouseY = 2 }
-    public RotationAxes axes = RotationAxes.MouseXAndY;
-    public float sensitivityX = 6F;
-    public float sensitivityY = 6F;
-    public float minimumX = -360F;
-    public float maximumX = 360F;
-    public float minimumY = -360F;
-    public float maximumY = 360F;
-    float rotationY = 0F;  
-    public float camSpeed = 500f;
-    
+public class CameraMovement : MonoBehaviour
+{
+    public float camSpeed = 3000f;
+    public float rotationSpeed = 1000f;
+    public float borderWidth = 10f;
 
-    void Update ()
+    public bool enableMouseMovement = false;
+
+    //Making camera movements with both mouse position and arrow keys.
+    void Update()
     {
-        if (Input.GetKey(KeyCode.Mouse1)){
-            MouseRotation();
-        }
-        ArrowMovement();
-    }
-    
-    void Start ()
-    {
+        Move();
+        Rotate();
+        Zoom();
     }
 
-    void ArrowMovement() {
+    void Move()
+    {
         Vector3 direction = new Vector3();
 
-        if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W)) {direction = Vector3.forward;}
-        if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.R)) {direction = Vector3.back;}
-        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.S)) {direction = Vector3.right;}
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A)) {direction = Vector3.left;}
-        if (Input.GetKey(KeyCode.P)) {direction = Vector3.up;}
-        if (Input.GetKey(KeyCode.T)) {direction = Vector3.down;}
+        //Up, Down, Right and Left movement (translating the camera coordinates, so rotation doesn't affect movement)
+        if (Input.GetKey(KeyCode.UpArrow) || (Input.mousePosition.y >= Screen.height - borderWidth && enableMouseMovement)) 
+        {
+            direction = (Vector3.forward + Vector3.up) / 2;
+        }
+        if (Input.GetKey(KeyCode.DownArrow) || (Input.mousePosition.y <= borderWidth && enableMouseMovement)) 
+        {
+            direction = (Vector3.down + Vector3.back) / 2;
+        }
+        if (Input.GetKey(KeyCode.RightArrow) || (Input.mousePosition.x >= Screen.width - borderWidth && enableMouseMovement)) 
+        {
+            direction = Vector3.right;
+        }
+        if (Input.GetKey(KeyCode.LeftArrow) || (Input.mousePosition.x <= borderWidth && enableMouseMovement)) 
+        {
+            direction = Vector3.left;
+        }
 
         transform.Translate(direction * camSpeed * Time.deltaTime);
-        
     }
 
-    void MouseRotation() {
-        if (axes == RotationAxes.MouseXAndY)
+    void Zoom()
+    {
+        Vector3 direction = new Vector3();
+
+        //Zooming in and out
+        if (Input.GetKey(KeyCode.UpArrow) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
         {
-            float rotationX = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * sensitivityX;
-            
-            rotationY += Input.GetAxis("Mouse Y") * sensitivityY;
-            rotationY = Mathf.Clamp (rotationY, minimumY, maximumY);
-            
-            transform.localEulerAngles = new Vector3(-rotationY, rotationX, 0);
+            direction = Vector3.forward;
         }
-        else if (axes == RotationAxes.MouseX)
+        if (Input.GetKey(KeyCode.DownArrow) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
         {
-            transform.Rotate(0, Input.GetAxis("Mouse X") * sensitivityX, 0);
+            direction = Vector3.back;
         }
-        else
+
+        transform.Translate(direction * camSpeed * Time.deltaTime);
+    }
+
+    void Rotate()
+    {
+        if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && Input.GetKey(KeyCode.LeftArrow))
         {
-            rotationY += Input.GetAxis("Mouse Y") * sensitivityY;
-            rotationY = Mathf.Clamp (rotationY, minimumY, maximumY);
-            
-            transform.localEulerAngles = new Vector3(-rotationY, transform.localEulerAngles.y, 0);
+            float rotation = (rotationSpeed / 2.5f) * Time.deltaTime;
+            transform.Rotate(Vector3.up, -rotation, Space.World);
+        }
+        if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && Input.GetKey(KeyCode.RightArrow))
+        {
+            float rotation = (rotationSpeed / 2.5f) * Time.deltaTime;
+            transform.Rotate(Vector3.up, rotation, Space.World);
         }
     }
 }
