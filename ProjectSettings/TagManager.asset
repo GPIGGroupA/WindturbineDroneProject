@@ -7,6 +7,7 @@ TagManager:
   - Drone
   - WindTurbine
   - HubTurbine
+  - Boat
   layers:
   - Default
   - TransparentFX
