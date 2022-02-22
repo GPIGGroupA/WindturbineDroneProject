@@ -21,12 +21,12 @@ public class HubTurbine : WindTurbine
         // TODO: Remove
         jobs_queue.Add(new Job("A31", JobType.Scan, 0, 0));
 
-        GameObject drone = Instantiate(
+        GameObject obj = Instantiate(
                 delivary_drone_prefab, 
                 this.transform.position + new Vector3(0, 105, 0), 
                 Quaternion.identity
             );
-        pad.holdChargingDrone(drone, 0);
+        pad.holdChargingDrone(obj.GetComponent<Drone>(), 0);
     }
 
     void Update()
