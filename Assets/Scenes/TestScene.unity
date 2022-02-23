@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.0032733497, g: 0.2892322, b: 0.30624482, a: 1}
+  m_IndirectSpecularColor: {r: 0.00327352, g: 0.28859362, b: 0.3065927, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -527,6 +527,29 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &742269430 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1279876736621708387, guid: 2c9dc0d27e4e840caa19f8aada8b2d6c, type: 3}
+  m_PrefabInstance: {fileID: 5937412190732155953}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &742269433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 742269430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6cea399660b5824f8fbbec69fe25edb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 
+  problem_level: 0
+  last_maintenance: 0
+  delivary_drone_prefab: {fileID: 4507032809154786371, guid: f901daf0927cb4cfbb2cb6b3e2c6ce03, type: 3}
+  maintenance_drone_prefab: {fileID: 4305180593109918609, guid: b8c187ee98e52400e83f6b665250c37b, type: 3}
+  dronesUnderControl: []
 --- !u!1001 &815807263
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2142,6 +2165,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1323466255}
     m_Modifications:
+    - target: {fileID: 1279876736207665477, guid: 2c9dc0d27e4e840caa19f8aada8b2d6c, type: 3}
+      propertyPath: m_Direction
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1279876736207665477, guid: 2c9dc0d27e4e840caa19f8aada8b2d6c, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1279876736621221955, guid: 2c9dc0d27e4e840caa19f8aada8b2d6c, type: 3}
       propertyPath: m_RootOrder
       value: 3
