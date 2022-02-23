@@ -23,19 +23,19 @@ public class CameraMovement : MonoBehaviour
         //Up, Down, Right and Left movement (translating the camera coordinates, so rotation doesn't affect movement)
         if (Input.GetKey(KeyCode.UpArrow) || (Input.mousePosition.y >= Screen.height - borderWidth && enableMouseMovement)) 
         {
-            direction = (Vector3.forward + Vector3.up) / 2;
+            direction += (Vector3.forward + Vector3.up) / 2;
         }
         if (Input.GetKey(KeyCode.DownArrow) || (Input.mousePosition.y <= borderWidth && enableMouseMovement)) 
         {
-            direction = (Vector3.down + Vector3.back) / 2;
+            direction += (Vector3.down + Vector3.back) / 2;
         }
         if (Input.GetKey(KeyCode.RightArrow) || (Input.mousePosition.x >= Screen.width - borderWidth && enableMouseMovement)) 
         {
-            direction = Vector3.right;
+            direction += Vector3.right;
         }
         if (Input.GetKey(KeyCode.LeftArrow) || (Input.mousePosition.x <= borderWidth && enableMouseMovement)) 
         {
-            direction = Vector3.left;
+            direction += Vector3.left;
         }
 
         transform.Translate(direction * camSpeed * Time.deltaTime);
