@@ -17,30 +17,42 @@ public class Drone : MonoBehaviour {
 
     // Unity Infomation
     private float max_speed = 200;
-    private float steer_strength = 100;
+    private float turnspeed = 0.5F;
     Vector3 position;
     Vector3 velocity;
 
 
     // Unity things
-    void UnityMove(Vector3 direction) // Takes a direction the drone wants to move, but this is the reality limitiations, e.g. momentum, rotation speed
+    void UnityMove(Vector3 targetDirection, float deltaMagnitude) // Takes a direction the drone wants to move, but this is the reality limitiations, e.g. momentum, rotation speed
     {
-        float singleStep = steer_strength * Time.deltaTime;
         position = transform.position;
 
-        Vector3 nextFrameDirection = Vector3.RotateTowards(transform.forward, direction, singleStep, 0.0f);
-        Vector3 nextFrameVelocity = nextFrameDirection * max_speed;
-        Vector3 nextFrameSteeringForce = (nextFrameVelocity - velocity) * steer_strength;
-        Vector3 acceleration = Vector3.ClampMagnitude(nextFrameSteeringForce, steer_strength);
+        Vector3 nextFrameVelocity = Vector3.ClampMagnitude(velocity + Vector3.Normalize(targetDirection)*deltaMagnitude, max_speed);
 
-        velocity = Vector3.ClampMagnitude(velocity + acceleration * Time.deltaTime, max_speed);
-        position += velocity * Time.deltaTime;
+        velocity = nextFrameVelocity;
+        position += nextFrameVelocity * Time.deltaTime;
 
-        nextFrameDirection.y= 0F;
-        if (nextFrameDirection != Vector3.zero){
-            transform.rotation = Quaternion.LookRotation(nextFrameDirection);
+        transform.position = position;
+
+
+        Vector3 targetDroneRotation;
+        if (Vector3.Angle(targetDirection, Vector3.down)<=90f){
+            Vector3 normal = Vector3.Normalize(targetDirection);
+            normal.y = 0;
+
+            targetDroneRotation = Vector3.Reflect(targetDirection*-1.0f, normal);
+        } else {
+            targetDroneRotation = targetDirection;
         }
-        transform.position = new Vector3(position.x, Mathf.Clamp(position.y, 0, 2000), position.z);
+
+        targetDroneRotation = Vector3.Normalize(targetDroneRotation);
+
+        Vector3 nextFrameDirection = Vector3.RotateTowards(transform.up, targetDroneRotation, turnspeed*Time.deltaTime, 0.0f);
+        nextFrameDirection.x = Mathf.Clamp(nextFrameDirection.x, Vector3.up.x-0.5F, Vector3.up.x+0.5F);
+        nextFrameDirection.y = Mathf.Clamp(nextFrameDirection.y, Vector3.up.y-0.5F, Vector3.up.y+0.5F);
+        nextFrameDirection.z = Mathf.Clamp(nextFrameDirection.z, Vector3.up.z-0.5F, Vector3.up.z+0.5F);
+
+        transform.up = nextFrameDirection;
     }
 
     void OnTriggerEnter(Collider collider)
@@ -123,7 +135,8 @@ public class Drone : MonoBehaviour {
     void TakeOff()
     {
         target= position;
-        target.y= 1000F;  
+        target.y= 400F;
+        target.x= -800F;  
         Move();
     }
 
@@ -135,7 +148,7 @@ public class Drone : MonoBehaviour {
     void Move()
     {
         Vector3 targetDirection = target - transform.position;
-        UnityMove(targetDirection);
+        UnityMove(targetDirection, 1F);
     }
 
     void Decomission()
