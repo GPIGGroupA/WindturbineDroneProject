@@ -18,9 +18,6 @@ public class HubTurbine : WindTurbine
     // Control things
     void Start()
     {
-        // TODO: Remove
-        jobs_queue.Add(new Job("A31", JobType.Scan, 0, 0));
-
         GameObject obj = Instantiate(
                 delivary_drone_prefab, 
                 this.transform.position + new Vector3(0, 105, 0), 

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum State {Parked, Comission, TakeOff, Move, Land, Decomission, Idle}
+public enum State {Parked, Comission, TakeOff, Move, Land, Decomission, Failure}
 
 
 public class Drone : MonoBehaviour {
@@ -10,9 +10,10 @@ public class Drone : MonoBehaviour {
     // Drone Infomation
     public float battery_percentage= 100F;
     public State current_state = State.Parked;
-    Vector3 target;
-    bool has_target= false;
+    public Vector3 target;
+    public bool has_target= false;
     private List<Job> jobs_queue= new List<Job>();
+    public float battery_level_tolerance= 10F;
 
 
     // Unity Infomation
@@ -33,8 +34,9 @@ public class Drone : MonoBehaviour {
         position += nextFrameVelocity * Time.deltaTime;
 
         transform.position = position;
+    }
 
-
+    void UnityRotateAnimation(Vector3 targetDirection){
         Vector3 targetDroneRotation;
         if (Vector3.Angle(targetDirection, Vector3.down)<=90f){
             Vector3 normal = Vector3.Normalize(targetDirection);
@@ -72,7 +74,6 @@ public class Drone : MonoBehaviour {
     // Control things
     public void Start()
     {
-        position = transform.position;
     }
 
     public void Update() 
@@ -84,17 +85,34 @@ public class Drone : MonoBehaviour {
 
         if (current_state==State.Comission || current_state==State.Decomission){return;}
 
-        battery_percentage-= 0.1F;
+        battery_percentage-= 0.001F;
         velocity = Vector3.Scale(velocity, new Vector3(0.99F, 0.99F, 0.99F));
     }
 
     void StateCheck()
     {
-        if (current_state== State.TakeOff && position.y >= 600) {
-            current_state= State.Move;
+        // Specfic state things
+        switch (current_state){
+            case State.Comission:
+                if (jobs_queue.Count!=0){current_state= State.TakeOff;}
+                break;
+
+            case State.TakeOff:
+                if (transform.position.y>400f){
+                    current_state= State.Move;
+                    Job? job= whichJobToDo(transform.position);
+                    if (job!=null){}// TODO: Get target from the job
+                }
+                break;
         }
-        if (battery_percentage<10F) {
-            current_state= State.Land;
+
+        // Allowed in all states
+        if (estimatedBatteryCostForSafeReturn() + battery_level_tolerance >= battery_percentage){
+            // TODO: Select nearest charging turbine and do landing
+            current_state= State.Land; // TODO: Remove
+        }
+        if (transform.position.y<=0f){
+            current_state= State.Failure;
         }
     }
 
@@ -127,17 +145,14 @@ public class Drone : MonoBehaviour {
     // State things
     void Land()
     {
-        target= position;
-        target.y= 100F;  
-        Move();
+        UnityMove(Vector3.down, 1F);
+        UnityRotateAnimation(Vector3.down);
     }
 
     void TakeOff()
     {
-        target= position;
-        target.y= 400F;
-        target.x= -800F;  
-        Move();
+        UnityMove(Vector3.up, 1F);
+        UnityRotateAnimation(Vector3.up);
     }
 
     void Comission()
@@ -147,8 +162,15 @@ public class Drone : MonoBehaviour {
 
     void Move()
     {
-        Vector3 targetDirection = target - transform.position;
-        UnityMove(targetDirection, 1F);
+        if (has_target){
+            Vector3 targetDirection = target - transform.position;
+            UnityMove(targetDirection, 1F);
+            UnityRotateAnimation(targetDirection);
+        }
+        else {
+            UnityMove(Vector3.zero, 1F);
+            UnityRotateAnimation(Vector3.up);
+        }
     }
 
     void Decomission()
@@ -158,12 +180,20 @@ public class Drone : MonoBehaviour {
 
 
     // Utilitys
-    public int whichJobToDo(Vector3 startpoi){
-        return -1;
+    public Job? whichJobToDo(Vector3 startpoi){
+        if (jobs_queue.Count!=0){
+            return jobs_queue[0];
+        }
+        return null;
     }
 
     // Heuristics
     public float estimatedBatteryCostForJob(Job job, Vector3 startpoi){
         return 0.0F;
     }
+
+    public float estimatedBatteryCostForSafeReturn(){
+        return 10f;
+    }
+
 }
