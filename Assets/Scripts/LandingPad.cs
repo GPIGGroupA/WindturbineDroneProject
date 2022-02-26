@@ -6,34 +6,35 @@ using UnityEngine;
 public class LandingPad
 {
     public float chargeRate = 0.00001F;
-    Drone[] charging_pads;
+    public List<GameObject> charging_pads = new List<GameObject>();
+    public int num_chargepads;
     // GameObject[] non_charging_pads;
 
 
     public LandingPad(int num_chargepads, int num_nonchargepads){
-        charging_pads= new Drone[num_chargepads];
+        this.num_chargepads = num_chargepads;
         // non_charging_pads= new GameObject[num_nonchargepads];
     }
 
 
     public void Update(){
-
         // Charge Drones
-        foreach (Drone drone in charging_pads){
-            if (drone!=null && drone.battery_percentage < 100F){
-                drone.battery_percentage+= chargeRate;
-                if (drone.battery_percentage > 100F){
-                    drone.battery_percentage= 100F;
+        foreach (GameObject drone in charging_pads){
+            //get the script
+            Drone droneScript = drone.GetComponent<Drone>();
+            if (droneScript!=null && droneScript.battery_percentage < 100F){
+                droneScript.battery_percentage+= chargeRate;
+                if (droneScript.battery_percentage > 100F){
+                    droneScript.battery_percentage= 100F;
                 }
             }
         }
 
     }
 
-
-    public bool holdChargingDrone(Drone drone, int ind){
-        if (charging_pads[ind]==null){
-            charging_pads[ind]= drone;
+    public bool holdChargingDrone(GameObject drone, int ind){
+        if (charging_pads.Count < num_chargepads) {
+            charging_pads.Add(drone);
             return true;
         }
         return false;
@@ -48,8 +49,8 @@ public class LandingPad
     // }
 
 
-    public Drone releaseChargingDrone(int ind){
-        Drone res = charging_pads[ind];
+    public GameObject releaseChargingDrone(int ind){
+        GameObject res = charging_pads[ind];
         charging_pads[ind]= null;
         return res;
     }
@@ -62,11 +63,10 @@ public class LandingPad
 
 
     public int openChargingPad(){
-        for (int i=0; i<charging_pads.Length; i++){
-            if (charging_pads[i]==null){
-                return i;
-            }
+        if (charging_pads.Count + 1 < num_chargepads) {
+            return charging_pads.Count + 1;
         }
+
         return -1;
     }
 
@@ -82,7 +82,7 @@ public class LandingPad
 
     public bool startupChargingDrone(int ind){
         if (charging_pads[ind]!=null){
-            charging_pads[ind].current_state= State.TakeOff; // TODO: Change to commision
+            charging_pads[ind].GetComponent<Drone>().current_state= State.TakeOff; // TODO: Change to commision
             return true;
         }
         return false;
