@@ -82,7 +82,7 @@ public class LandingPad
 
     public bool startupChargingDrone(int ind){
         if (charging_pads[ind]!=null){
-            charging_pads[ind].GetComponent<Drone>().current_state= State.TakeOff; // TODO: Change to commision
+            // charging_pads[ind].GetComponent<Drone>().current_state= State.TakeOff; // TODO: Change to commision
             return true;
         }
         return false;

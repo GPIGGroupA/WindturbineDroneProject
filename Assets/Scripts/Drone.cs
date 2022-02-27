@@ -1,8 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
-public enum State {Parked, TakeOff, StartJob, EndJob, ReturnHome, Land, Failed}
+public enum ActionType {GoTo, Land, TakeOff};
+public struct Action {
+    public ActionType action;
+    public Vector3? target;
+
+    public Action(ActionType p_action, Vector3? p_target= null){
+        action = p_action;
+        target = p_target;
+    }
+}
 
 
 public class Drone : MonoBehaviour {
@@ -12,11 +22,7 @@ public class Drone : MonoBehaviour {
     public float battery_level_tolerance= 10F;
     public List<Job> jobs_queue= new List<Job>();
 
-
-    public State current_state = State.Parked;
-    public Job? current_job = null;
-    public Vector3 target;
-    public bool has_target= false;
+    public List<Action> action_stack = new List<Action>();
 
 
     // Unity Infomation
@@ -76,144 +82,73 @@ public class Drone : MonoBehaviour {
     // Control things
     public void Start()
     {
+        action_stack.Add(new Action( ActionType.TakeOff));
+        action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, 0f)));
+        action_stack.Add(new Action( ActionType.Land));
     }
 
     public void Update() 
     {
-        StateCheck();
-        StateAct();
+        if (action_stack.Count != 0){
+
+            bool ret= false;
+            switch(action_stack[0].action){
+
+                case ActionType.GoTo:
+                    ret = GoTo((Vector3) action_stack[0].target);
+                    break;
+
+                case ActionType.TakeOff:
+                    ret = TakeOff();
+                    break;
+
+                case ActionType.Land:
+                    ret = Land();
+                    break;
+
+            }
+
+            if (ret){action_stack.RemoveAt(0);}
+        
+        }
+
 
         battery_percentage-= 0.001F;
         velocity = Vector3.Scale(velocity, new Vector3(0.99F, 0.99F, 0.99F));
     }
 
-    void StateCheck()
+
+    // Actions
+    bool GoTo(Vector3 target)
     {
-        // Specfic state things
-        switch (current_state){
-            case State.Parked:
-                if (jobs_queue.Count!=0){current_state= State.TakeOff;}
-                break;
-
-            case State.TakeOff:
-                if (transform.position.y>400f){
-                    if (whichJobToDo(transform.position)!=null){current_state= State.StartJob;}
-                    else {current_state= State.ReturnHome;}
-                }
-                break;
-
-            case State.StartJob:
-                current_state= State.EndJob;
-                break;
-
-            case State.EndJob:
-                if (whichJobToDo(transform.position)!=null){current_state= State.StartJob;}
-                else {current_state= State.ReturnHome;}
-                break;
-
-            case State.ReturnHome:
-                if ((transform.position - target).magnitude < 30f){
-                    current_state= State.Land;
-                }
-                break;
-
-            case State.Land:
-                // Will be handled with colliders
-                break;
-        }
-
-        // Allowed in all states
-        if (estimatedBatteryCostForSafeReturn() + battery_level_tolerance >= battery_percentage){
-            current_state= State.ReturnHome;
-        }
-        if (transform.position.y<=0f){
-            current_state= State.Failed;
-        }
+        Move(target);
+        return (target-transform.position).magnitude < 30f;
     }
 
-    void StateAct()
+    bool TakeOff()
     {
-        switch(current_state){
-            case State.Parked:
-                Parked();
-                break;
+        Vector3 above = transform.position;
+        above.y= 400f;
 
-            case State.TakeOff:
-                TakeOff();
-                break;
-
-            case State.StartJob:
-                StartJob();
-                break;
-
-            case State.EndJob:
-                EndJob();
-                break;
-
-            case State.ReturnHome:
-                ReturnHome();
-                break;
-
-            case State.Land:
-                Land();
-                break;
-
-            case State.Failed:
-                Failed();
-                break;
-        }
+        return GoTo(above);
     }
 
-
-    // State things
-    void Parked()
-    {}
-
-    void TakeOff()
+    bool Land()
     {
-        UnityMove(Vector3.up, 1F, max_speed);
-        UnityRotateAnimation(Vector3.up);
-    }
+        Vector3 below = transform.position;
+        below.y = 10f;
 
-    void StartJob()
-    {}
-
-    void EndJob()
-    {}
-
-    void ReturnHome()
-    {
-        Move();
-    }
-
-    void Land()
-    {
-        UnityMove(Vector3.down, 1F, max_speed);
-        UnityRotateAnimation(Vector3.down);
-    }
-
-    void Failed()
-    {
-        if (transform.position.y > 0F){
-            UnityMove(Vector3.down, 10F, 10000F);
-        }
+        return GoTo(below);
     }
 
 
 
 
     // Utilitys
-    public Job? whichJobToDo(Vector3 startpoi){
-        if (jobs_queue.Count!=0){
-            return jobs_queue[0];
-        }
-        return null;
-    }
-
-    void Move()
+    void Move(Vector3? target=null)
     {
-        if (has_target){
-            Vector3 targetDirection = target - transform.position;
+        if (target!=null){
+            Vector3 targetDirection = (Vector3) target - transform.position;
             float force= Mathf.Clamp(targetDirection.magnitude/400, 0, 1);
 
             if (force < 0.01f){
@@ -228,6 +163,13 @@ public class Drone : MonoBehaviour {
             UnityMove(Vector3.zero, 0F, max_speed);
             UnityRotateAnimation(Vector3.up);
         }
+    }
+
+    public Job? whichJobToDo(Vector3 startpoi){
+        if (jobs_queue.Count!=0){
+            return jobs_queue[0];
+        }
+        return null;
     }
 
     // Heuristics
