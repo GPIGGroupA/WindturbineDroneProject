@@ -21,11 +21,6 @@ public class HubTurbine : WindTurbine
     // Control things
     void Start()
     {
-        // TODO: Remove
-        jobs_queue.Add(new Job("A31", JobType.Scan, 0, 0));
-        // TODO: Remove
-        jobs_queue.Add(new Job("A31", JobType.Scan, 0, 0));
-
         /*
         would probably have a start script which tells the hub turbines to create all the drones
         then can store them in a list of drones for reference and knowledge of which ones this
