@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public enum ActionType {GoTo, Land, TakeOff};
+public enum ActionType {GoTo, Land, TakeOff, Maintain};
 public struct Action {
     public ActionType action;
     public Vector3? target;
@@ -25,8 +25,15 @@ public class Drone : MonoBehaviour {
     public List<Action> action_stack = new List<Action>();
 
 
+    // Debug
+    public bool debug_act= false;
+    public ActionType debug_action_add_type= ActionType.GoTo;
+    public Vector3 debug_action_add_vector= new Vector3(0f, 400f, 0f);
+    public bool debug_action_add_true= false;
+
+
     // Unity Infomation
-    private float max_speed = 200;
+    private float max_speed = 400;
     private float turnspeed = 0.5F;
     Vector3 velocity;
 
@@ -82,14 +89,25 @@ public class Drone : MonoBehaviour {
     // Control things
     public void Start()
     {
-        action_stack.Add(new Action( ActionType.TakeOff));
-        action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, 0f)));
-        action_stack.Add(new Action( ActionType.Land));
+        // action_stack.Add(new Action( ActionType.TakeOff));
+        // action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, -100f)));
+        // action_stack.Add(new Action( ActionType.Maintain, new Vector3(0f, 400f, 0f)));
+        // action_stack.Add(new Action( ActionType.TakeOff));
+        // action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, -200f)));
+        // action_stack.Add(new Action( ActionType.GoTo, new Vector3(-200f, 400f, 200f)));
+        // action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, 0f)));
+        // action_stack.Add(new Action( ActionType.Land));
     }
 
     public void Update() 
     {
-        if (action_stack.Count != 0){
+        // TODO: Remove
+        if (debug_action_add_true){
+            debug_action_add_true= false;
+            action_stack.Add(new Action(debug_action_add_type, debug_action_add_vector));
+        }
+
+        if (action_stack.Count != 0 && debug_act){
 
             bool ret= false;
             switch(action_stack[0].action){
@@ -104,6 +122,10 @@ public class Drone : MonoBehaviour {
 
                 case ActionType.Land:
                     ret = Land();
+                    break;
+
+                case ActionType.Maintain:
+                    ret = Maintain((Vector3) action_stack[0].target);
                     break;
 
             }
@@ -141,7 +163,19 @@ public class Drone : MonoBehaviour {
         return GoTo(below);
     }
 
+    bool Maintain(Vector3 target)
+    {
+        Vector3 height_target= target;
+        height_target.y = transform.position.y;
 
+        transform.forward = Vector3.RotateTowards(transform.forward, height_target-transform.position, Mathf.PI/256, 1.0f);
+        UnityMove(transform.right+transform.forward+(Vector3.up*-0.1f), 1F, max_speed);
+
+        if (transform.position.y < 50f){
+            return true;
+        }
+        return false;
+    }
 
 
     // Utilitys
@@ -154,7 +188,7 @@ public class Drone : MonoBehaviour {
             if (force < 0.01f){
                 UnityMove(Vector3.zero, 1F, max_speed);
             } else {
-                UnityMove(targetDirection, force, max_speed);
+                UnityMove(targetDirection, force*2, max_speed);
             }
 
             UnityRotateAnimation(Vector3.RotateTowards(targetDirection, Vector3.up, (1-force)*(Mathf.PI/2), 1.0f));
