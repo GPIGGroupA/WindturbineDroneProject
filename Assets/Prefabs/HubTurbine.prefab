@@ -92,6 +92,7 @@ GameObject:
   - component: {fileID: 1279876736621221955}
   - component: {fileID: 7713071937730927471}
   - component: {fileID: 1279876736207665477}
+  - component: {fileID: 742269433}
   m_Layer: 0
   m_Name: HubTurbine
   m_TagString: HubTurbine
@@ -148,6 +149,24 @@ CapsuleCollider:
   m_Height: 65
   m_Direction: 1
   m_Center: {x: 0, y: 21.61045, z: 1}
+--- !u!114 &742269433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1279876736621708387}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6cea399660b5824f8fbbec69fe25edb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 
+  problem_level: 0
+  last_maintenance: 0
+  delivary_drone_prefab: {fileID: 4507032809154786371, guid: f901daf0927cb4cfbb2cb6b3e2c6ce03, type: 3}
+  maintenance_drone_prefab: {fileID: 4305180593109918609, guid: b8c187ee98e52400e83f6b665250c37b, type: 3}
+  dronesUnderControl: []
 --- !u!1 &1279876736621708389
 GameObject:
   m_ObjectHideFlags: 0
