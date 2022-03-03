@@ -42,5 +42,4 @@ public class GameController : MonoBehaviour
         allDrones.AddRange(GameObject.FindGameObjectsWithTag("Drone"));
         allBoats.AddRange(GameObject.FindGameObjectsWithTag("Boat"));
     }
-
 }

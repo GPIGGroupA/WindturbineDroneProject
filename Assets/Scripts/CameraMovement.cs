@@ -4,16 +4,32 @@ public class CameraMovement : MonoBehaviour
 {
     public float camSpeed = 3000f;
     public float rotationSpeed = 1000f;
+
+    public float followSpeed = 8f;
     public float borderWidth = 10f;
 
+    Vector3 droneOffset = new Vector3(36, 50, -36);
+    public GameObject followTarget;
+
+    public Vector3 previousPosition;
+
     public bool enableMouseMovement = false;
+
+    public bool followingObject = false;
 
     //Making camera movements with both mouse position and arrow keys.
     void Update()
     {
-        Move();
-        Rotate();
-        Zoom();
+        if (!followingObject) 
+        {
+            Move();
+            Rotate();
+            Zoom();
+        }
+        else
+        {
+            Follow();
+        }
     }
 
     void Move()
@@ -70,5 +86,10 @@ public class CameraMovement : MonoBehaviour
             float rotation = (rotationSpeed / 2.5f) * Time.deltaTime;
             transform.Rotate(Vector3.up, rotation, Space.World);
         }
+    }
+
+    public void Follow()
+    {
+        transform.position = Vector3.Lerp(transform.position, followTarget.transform.position + droneOffset, Time.deltaTime * followSpeed);
     }
 }
