@@ -500,8 +500,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4305180593109918609}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -61, y: 39.2, z: 29.378532}
-  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1665192674794563223}
   - {fileID: 1383010723344616617}
@@ -601,6 +601,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16618105fd2fb9c4fa7ec402920169d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  battery_percentage: 100
+  battery_level_tolerance: 10
+  parked: 1
+  charging: 0
+  debug_no_home: 1
+  debug_home: {x: 0, y: 0, z: 0}
+  debug_act: 0
+  debug_action_add_type: 0
+  debug_action_add_vector: {x: 0, y: 400, z: 0}
+  debug_action_add_true: 0
 --- !u!1 &7035106414820321107
 GameObject:
   m_ObjectHideFlags: 0
