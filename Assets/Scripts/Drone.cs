@@ -17,40 +17,43 @@ public struct Action {
 
 public class Drone : MonoBehaviour {
 
-    // Drone Infomation
+    // Drone Control Infomation
     public float battery_percentage= 100F;
-    public float battery_level_tolerance= 10F;
     public List<Job> jobs_queue= new List<Job>();
     public List<Action> action_stack = new List<Action>();
     public bool parked = true;
     public bool charging = false;
 
 
+    // Drone Behavouir Parameters
+    private float battery_level_tolerance= 10F;
+    private float aviation_plane = 200F;
+    private float start_slowdown_dist = 100F;
+    private float goto_precision_dist = 30F;
+    private float goto_precision_vel = 1f;
+
+
+
     // Debug
     public bool debug_no_home= true;
-    public Vector3 debug_home;
     public bool debug_act= false;
-    public ActionType debug_action_add_type= ActionType.GoTo;
-    public Vector3 debug_action_add_vector= new Vector3(0f, 400f, 0f);
-    public bool debug_action_add_true= false;
 
 
     // Unity Infomation
-    private float max_speed = 400;
+    private float max_speed = 44f;
+    private float max_deltaforce = 1f;
     private float turnspeed = 0.5F;
-    Vector3 velocity;
+    private Vector3 velocity;
 
 
     // Unity things
-    void UnityMove(Vector3 targetDirection, float deltaMagnitude, float max_s)
+    void UnityMove(Vector3 targetDirection, float deltaForcePerc)
     {
-        Vector3 position = transform.position;
-        Vector3 nextFrameVelocity = Vector3.ClampMagnitude(velocity + Vector3.Normalize(targetDirection)*deltaMagnitude, max_s);
+        Vector3 deltaVelocity = Vector3.Normalize(targetDirection)*(max_deltaforce*deltaForcePerc);
+        Vector3 nextFrameVelocity = Vector3.ClampMagnitude(velocity + deltaVelocity, max_speed);
 
         velocity = nextFrameVelocity;
-        position += nextFrameVelocity * Time.deltaTime;
-
-        transform.position = position;
+        transform.position = transform.position + nextFrameVelocity*Time.deltaTime;
     }
 
     void UnityRotateAnimation(Vector3 targetDirection, float force){
@@ -67,7 +70,7 @@ public class Drone : MonoBehaviour {
         targetDroneRotation = Vector3.Normalize(targetDroneRotation);
 
         // Make the rotation smaller for realism
-        float angle= Vector3.Angle(targetDroneRotation, Vector3.up)*(float) Mathf.Deg2Rad*((1-force)+0.25f);
+        float angle= ((float) Mathf.Deg2Rad * Vector3.Angle(targetDroneRotation, Vector3.up) * (1-force)*Mathf.PI/2) + Mathf.PI/4;
         targetDroneRotation = Vector3.RotateTowards(targetDroneRotation, Vector3.up, angle, 1.0f);
 
         Vector3 nextFrameDirection = Vector3.RotateTowards(transform.up, targetDroneRotation, turnspeed*Time.deltaTime, 0.0f);
@@ -77,11 +80,6 @@ public class Drone : MonoBehaviour {
 
     void OnTriggerEnter(Collider collider)
     {
-        // if (current_state==State.Land && collider.gameObject.tag == "HubTurbine"){
-        //     if (collider.GetComponent<HubTurbine>().pad.holdChargingDrone(this, 2)){
-        //         Object.Destroy(this.gameObject);
-        //     }
-        // }
     }
 
     void OnTriggerExit(Collider collider)
@@ -92,26 +90,22 @@ public class Drone : MonoBehaviour {
     // Control things
     public void Start()
     {
-        debug_home = transform.position;
-        debug_home.y= 400f;
+        // debug_home = transform.position;
+        // debug_home.y= 400f;
 
         action_stack.Add(new Action( ActionType.TakeOff));
-        action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, -100f)));
-        action_stack.Add(new Action( ActionType.Maintain, new Vector3(0f, 400f, 0f)));
-        action_stack.Add(new Action( ActionType.TakeOff));
-        action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, -200f)));
-        action_stack.Add(new Action( ActionType.GoTo, new Vector3(-200f, 400f, 200f)));
-        action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, 0f)));
+        action_stack.Add(new Action( ActionType.GoTo, new Vector3(1000f, aviation_plane, -300f)));
+        action_stack.Add(new Action( ActionType.GoTo, new Vector3(1000f, aviation_plane, -200f)));
+        action_stack.Add(new Action( ActionType.GoTo, new Vector3(1000f, aviation_plane, -400f)));
+        action_stack.Add(new Action( ActionType.Maintain, new Vector3(1000f, 400f, -350f)));
+        // action_stack.Add(new Action( ActionType.TakeOff));
+        // action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, -200f)));
+        // action_stack.Add(new Action( ActionType.GoTo, new Vector3(-200f, 400f, 200f)));
+        // action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, 0f)));
     }
 
     public void Update() 
     {
-        // TODO: Remove
-        if (debug_action_add_true){
-            debug_action_add_true= false;
-            action_stack.Add(new Action(debug_action_add_type, debug_action_add_vector));
-        }
-
         //TODO: Remove
         if (debug_act) {
 
@@ -148,17 +142,9 @@ public class Drone : MonoBehaviour {
                 // transpile job into actions
             }
             else {
+                // TODO: Remove
                 if (!debug_no_home){
-
                 // Return to base
-                if (parked){
-                    action_stack.Add(new Action(ActionType.TakeOff));
-                    parked= false;
-                }
-
-                action_stack.Add(new Action(ActionType.GoTo, debug_home));
-                action_stack.Add(new Action(ActionType.Land));
-
                 }
             }
         }
@@ -175,13 +161,13 @@ public class Drone : MonoBehaviour {
     bool GoTo(Vector3 target)
     {
         Move(target);
-        return (target-transform.position).magnitude < 30f;
+        return (target-transform.position).magnitude < goto_precision_dist && velocity.magnitude < goto_precision_vel;
     }
 
     bool TakeOff()
     {
         Vector3 above = transform.position;
-        above.y= 400f;
+        above.y= aviation_plane;
 
         return GoTo(above);
     }
@@ -189,7 +175,7 @@ public class Drone : MonoBehaviour {
     bool Land()
     {
         Vector3 below = transform.position;
-        below.y = 30f;
+        below.y = 0f;
 
         return GoTo(below);
     }
@@ -200,9 +186,9 @@ public class Drone : MonoBehaviour {
         height_target.y = transform.position.y;
 
         transform.forward = Vector3.RotateTowards(transform.forward, height_target-transform.position, Mathf.PI/256, 1.0f);
-        UnityMove(transform.right+transform.forward+(Vector3.up*-0.1f), 1F, max_speed);
+        UnityMove(transform.right+transform.forward+(Vector3.up*-0.1f), 1F);
 
-        if (transform.position.y < 50f){
+        if (transform.position.y < 0f){
             return true;
         }
         return false;
@@ -214,19 +200,17 @@ public class Drone : MonoBehaviour {
     {
         if (target!=null){
             Vector3 targetDirection = (Vector3) target - transform.position;
-            float force= Mathf.Clamp(targetDirection.magnitude/400, 0, 1);
+            float deltaForcePerc= Mathf.Clamp(targetDirection.magnitude/start_slowdown_dist, 0, 1);
 
-            if (force < 0.01f){
-                UnityMove(Vector3.zero, 1F, max_speed);
-            } else {
-                UnityMove(targetDirection, force*2, max_speed);
-            }
-
-            UnityRotateAnimation(Vector3.RotateTowards(targetDirection, Vector3.up, (1-force)*(Mathf.PI/2), 1.0f), force);
+            UnityMove(targetDirection, deltaForcePerc);
+            UnityRotateAnimation(
+                targetDirection,
+                deltaForcePerc
+            );
         }
         else {
-            UnityMove(Vector3.zero, 0F, max_speed);
-            UnityRotateAnimation(Vector3.up, 0f);
+            UnityMove(Vector3.zero, 0F);
+            UnityRotateAnimation(Vector3.up, 0F);
         }
     }
 
