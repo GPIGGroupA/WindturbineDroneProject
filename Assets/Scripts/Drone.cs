@@ -226,7 +226,7 @@ public class Drone : MonoBehaviour {
         return 0.0F;
     }
 
-    public float estimatedBatteryCostForSafeReturn(){
+    public float estimatedBatteryCostForSafeReturn(Vector3 startpoi){
         return 10f;
     }
 

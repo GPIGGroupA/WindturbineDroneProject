@@ -27,4 +27,19 @@ public static class Utilities
 
         return objectsInRange;
     }
+
+    public static float shortestDistanceToLine(Vector3 l1, Vector3 l2, Vector3 p){
+        float l1l2 = (l1-l2).magnitude;
+        float l1p = (l1-p).magnitude;
+        float l2p = (l2-p).magnitude;
+
+
+        if (l1p > l1l2){return l1p;}
+        else if (l2p > l1l2){return l2p;}
+        else {
+            float s = (l1l2+l1p+l2p)/2;
+            float area = Mathf.Sqrt(s*(s-l1l2)*(s-l1p)*(s-l2p));
+            return area*2/l1l2;
+        }
+    }
 }

@@ -6,12 +6,12 @@ public enum JobType {Delivary, Scan}
 
 public struct Job
 {
-    Vector3? startTurbineID;
-    Vector3 targetTurbineID;
-    JobType jobtype;
-    int priority;
-    int deadline;
-    float weight;
+    public Vector3? startTurbineID;
+    public Vector3 targetTurbineID;
+    public JobType jobtype;
+    public int priority;
+    public int deadline;
+    public float weight;
 
     public Job(Vector3 p_targetTurbineID, JobType p_jobtype, int p_priority, int p_deadline, float p_weight= 0F, Vector3? p_startTurbineID= null)
     {
