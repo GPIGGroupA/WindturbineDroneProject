@@ -21,22 +21,16 @@ public class Drone : MonoBehaviour {
     public float battery_percentage= 100F;
     public List<Job> jobs_queue= new List<Job>();
     public List<Action> action_stack = new List<Action>();
-    public bool parked = true;
+    public bool parked = false;
     public bool charging = false;
 
 
     // Drone Behavouir Parameters
     private float battery_level_tolerance= 10F;
-    private float aviation_plane = 200F;
+    private float aviation_plane = 300F;
     private float start_slowdown_dist = 100F;
     private float goto_precision_dist = 30F;
     private float goto_precision_vel = 1f;
-
-
-
-    // Debug
-    public bool debug_no_home= true;
-    public bool debug_act= false;
 
 
     // Unity Infomation
@@ -88,28 +82,12 @@ public class Drone : MonoBehaviour {
 
 
     // Control things
-    public void Start()
-    {
-        // debug_home = transform.position;
-        // debug_home.y= 400f;
+    public void Start(){
 
-        action_stack.Add(new Action( ActionType.TakeOff));
-        action_stack.Add(new Action( ActionType.GoTo, new Vector3(1000f, aviation_plane, -300f)));
-        action_stack.Add(new Action( ActionType.GoTo, new Vector3(1000f, aviation_plane, -200f)));
-        action_stack.Add(new Action( ActionType.GoTo, new Vector3(1000f, aviation_plane, -400f)));
-        action_stack.Add(new Action( ActionType.Maintain, new Vector3(1000f, 400f, -350f)));
-        // action_stack.Add(new Action( ActionType.TakeOff));
-        // action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, -200f)));
-        // action_stack.Add(new Action( ActionType.GoTo, new Vector3(-200f, 400f, 200f)));
-        // action_stack.Add(new Action( ActionType.GoTo, new Vector3(0f, 400f, 0f)));
     }
 
     public void Update() 
     {
-        //TODO: Remove
-        if (debug_act) {
-
-
         if (action_stack.Count != 0){ // Things to do on the stack
 
             bool ret= false;
@@ -137,23 +115,35 @@ public class Drone : MonoBehaviour {
         
         }
         else { // Nothing on the stack, put things on the stack
-            Job? job = whichJobToDo(transform.position);
+            Job? job = nextJob();
             if (job != null){
-                // transpile job into actions
+                Job tmp = (Job) job;
+                switch(tmp.jobtype){
+
+                    case JobType.Scan:
+                        action_stack.Add(new Action(ActionType.TakeOff));
+                        Vector3 target= tmp.targetTurbineID;
+                        target += Vector3.Normalize(target - transform.position)*100;
+                        target.y = aviation_plane;
+                        action_stack.Add(new Action(ActionType.GoTo, target));
+                        action_stack.Add(new Action(ActionType.Maintain, tmp.targetTurbineID));
+                        action_stack.Add(new Action(ActionType.TakeOff));
+                        break;
+
+                }
+                jobs_queue.Remove(tmp);
             }
             else {
-                // TODO: Remove
-                if (!debug_no_home){
                 // Return to base
-                }
+                action_stack.Add(new Action(ActionType.TakeOff));
+                action_stack.Add(new Action(ActionType.GoTo, closestHubTurbine(transform.position)));
+                action_stack.Add(new Action(ActionType.Land));
             }
         }
-
 
         battery_percentage-= 0.001F;
         velocity = Vector3.Scale(velocity, new Vector3(0.99F, 0.99F, 0.99F));
 
-        }
     }
 
 
@@ -186,9 +176,9 @@ public class Drone : MonoBehaviour {
         height_target.y = transform.position.y;
 
         transform.forward = Vector3.RotateTowards(transform.forward, height_target-transform.position, Mathf.PI/256, 1.0f);
-        UnityMove(transform.right+transform.forward+(Vector3.up*-0.1f), 1F);
+        UnityMove(transform.right+transform.forward+(Vector3.up*-0.4f), 1F);
 
-        if (transform.position.y < 0f){
+        if (transform.position.y < 20f){
             return true;
         }
         return false;
@@ -214,20 +204,20 @@ public class Drone : MonoBehaviour {
         }
     }
 
-    public Job? whichJobToDo(Vector3 startpoi){
+    public Job? nextJob(){
         if (jobs_queue.Count!=0){
             return jobs_queue[0];
         }
         return null;
     }
 
-    // Heuristics
-    public float estimatedBatteryCostForJob(Job job, Vector3 startpoi){
-        return 0.0F;
+    public Vector3 closestHubTurbine(Vector3 startpoi){
+        return new Vector3(1000f, aviation_plane, 0f);
     }
 
-    public float estimatedBatteryCostForSafeReturn(Vector3 startpoi){
-        return 10f;
+    // Heuristics
+    public float willingnessToDeploy(){
+        return Mathf.Pow(battery_percentage/10, 2);
     }
 
 }

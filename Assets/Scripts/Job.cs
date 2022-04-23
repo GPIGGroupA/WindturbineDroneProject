@@ -10,7 +10,7 @@ public struct Job
     public Vector3 targetTurbineID;
     public JobType jobtype;
     public int priority;
-    public int deadline;
+    public float deadline;
     public float weight;
 
     public Job(Vector3 p_targetTurbineID, JobType p_jobtype, int p_priority, int p_deadline, float p_weight= 0F, Vector3? p_startTurbineID= null)

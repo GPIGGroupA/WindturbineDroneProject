@@ -12,13 +12,13 @@ public class WindTurbine : MonoBehaviour
     private float major_failure_starting_level= 0.0001F;
     
     // Start is called before the first frame update
-    void Start()
+    public void Start()
     {
         last_maintenance= Time.frameCount;
     }
 
     // Update is called once per frame
-    void Update()
+    public void Update()
     {
         if (problem_level < 1F) {
             if (Random.Range(0F, 1F) < chance_of_major_failures){

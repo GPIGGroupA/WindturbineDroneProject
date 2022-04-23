@@ -20,12 +20,14 @@ public class LandingPad
     public void Update(){
         // Charge Drones
         foreach (GameObject drone in charging_pads){
-            //get the script
-            Drone droneScript = drone.GetComponent<Drone>();
-            if (droneScript!=null && droneScript.battery_percentage < 100F){
-                droneScript.battery_percentage+= chargeRate;
-                if (droneScript.battery_percentage > 100F){
-                    droneScript.battery_percentage= 100F;
+            if (drone != null){
+                //get the script
+                Drone droneScript = drone.GetComponent<Drone>();
+                if (droneScript!=null && droneScript.battery_percentage < 100F){
+                    droneScript.battery_percentage+= chargeRate;
+                    if (droneScript.battery_percentage > 100F){
+                        droneScript.battery_percentage= 100F;
+                    }
                 }
             }
         }
@@ -66,7 +68,6 @@ public class LandingPad
         if (charging_pads.Count + 1 < num_chargepads) {
             return charging_pads.Count + 1;
         }
-
         return -1;
     }
 
@@ -78,14 +79,5 @@ public class LandingPad
     //     }
     //     return -1;
     // }
-
-
-    public bool startupChargingDrone(int ind){
-        if (charging_pads[ind]!=null){
-            // charging_pads[ind].GetComponent<Drone>().current_state= State.TakeOff; // TODO: Change to commision
-            return true;
-        }
-        return false;
-    }
 
 }

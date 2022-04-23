@@ -42,4 +42,9 @@ public static class Utilities
             return area*2/l1l2;
         }
     }
+
+    public static float jobRank(Job job){
+        // !00 for 100 seconds, e.g. Don't even think about it until 100 seconds
+        return Mathf.Pow(100 - Mathf.Clamp(Mathf.Abs(job.deadline - Time.time), 0, 100), 2)*job.priority;
+    }
 }
