@@ -61,4 +61,8 @@ public class HubTurbine : WindTurbine
         drone.GetComponent<Drone>().jobs_queue.Add(jobs_queue[0]);
         drone.GetComponent<Drone>().jobs_queue.Add(jobs_queue[1]);
     }
+
+    // public (List<Job>, float) jobSubsetGeneration(double will){
+
+    // }
 }

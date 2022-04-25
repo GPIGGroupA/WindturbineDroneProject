@@ -47,4 +47,18 @@ public static class Utilities
         // !00 for 100 seconds, e.g. Don't even think about it until 100 seconds
         return Mathf.Pow(100 - Mathf.Clamp(Mathf.Abs(job.deadline - Time.time), 0, 100), 2)*job.priority;
     }
+
+    public static int argMax(List<float> list){
+        int argmax = 0;
+        float max = float.MinValue;
+
+        for (int i=0; i<list.Count; i++){
+            if (list[i] > max){
+                argmax = i;
+                max = list[i];
+            }
+        }
+        
+        return argmax;
+    }
 }

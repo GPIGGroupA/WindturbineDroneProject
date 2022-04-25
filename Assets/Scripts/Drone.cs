@@ -136,6 +136,7 @@ public class Drone : MonoBehaviour {
                     switch(tmp.jobtype){
 
                         case JobType.Scan:
+                            Debug.Log(JobSubsetBatteryAndTimeCost(jobs_queue));
                             action_stack.Add(new Action(ActionType.TakeOff));
                             target= tmp.targetTurbineID;
                             target += Vector3.Normalize(transform.position - target)*150;
@@ -159,6 +160,7 @@ public class Drone : MonoBehaviour {
                             action_stack.Add(new Action(ActionType.GoTo, target));
                             action_stack.Add(new Action(ActionType.Land, target));
                             action_stack.Add(new Action(ActionType.Deliver));
+                            action_stack.Add(new Action(ActionType.TakeOff));
                             break;
 
                     }
@@ -273,9 +275,62 @@ public class Drone : MonoBehaviour {
         return new Vector3(1000f, aviation_plane, 0f);
     }
 
-    // Heuristics
     public float willingnessToDeploy(){
         return Mathf.Pow(battery_percentage/10, 2);
+    }
+
+    public (float, float) JobBatteryAndTimeCost(Job job, Vector3 startpoi){
+
+        float time = 0;
+        float perc = 0;
+        float dist = 0;
+
+        if (job.jobtype == JobType.Scan){
+            dist += aviation_plane - startpoi.y; //TakeOff
+            startpoi.y = aviation_plane;
+            dist += (job.targetTurbineID - startpoi).magnitude; //GoTo
+            dist += aviation_plane - 20f; //TakeOff
+
+            time = dist/38.2f;
+
+            time += 3; // Rotation
+            time += 44; // Maintain
+            perc = time*0.18f;
+        }
+        else if (job.jobtype == JobType.Delivary){
+            dist += aviation_plane - startpoi.y; //TakeOff
+            startpoi.y = aviation_plane;
+            dist += ((Vector3) job.startTurbineID - startpoi).magnitude; //GoTo pickup
+            startpoi = (Vector3) job.startTurbineID;
+            startpoi.y = aviation_plane;
+            dist += 2*(aviation_plane - 215f); // Land Pickup Takeoff
+            dist += (job.targetTurbineID - startpoi).magnitude; //GoTo dropoff
+            dist += 2*(aviation_plane - 215f); // Land Dropoff Takeoff
+
+            time = dist/38.2f;
+            perc = time*0.18f;
+        }
+
+        return (time, perc);
+
+    }
+
+    public (float, float) JobSubsetBatteryAndTimeCost(List<Job> jobs){
+        float time = 0;
+        float perc = 0;
+
+        Vector3 pos = transform.position;
+        foreach(Job job in jobs){
+            (float dt, float dp)= JobBatteryAndTimeCost(job, pos);
+            pos = job.targetTurbineID;
+            pos.y = aviation_plane;
+            time+= dt;
+        }
+
+        time += ((closestHubTurbine(pos) - pos).magnitude + aviation_plane - 215f)/38.2f;
+        perc = time*0.18f;
+
+        return (time, perc);
     }
 
 }
