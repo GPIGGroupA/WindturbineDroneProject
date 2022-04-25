@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public enum ActionType {GoTo, Land, TakeOff, Maintain};
+public enum ActionType {GoTo, Land, TakeOff, Maintain, FaceTowards, Deliver, PickUp};
 public struct Action {
     public ActionType action;
     public Vector3? target;
@@ -23,6 +23,7 @@ public class Drone : MonoBehaviour {
     public List<Action> action_stack = new List<Action>();
     public bool parked = false;
     public bool charging = false;
+    public bool carrying_item = false;
 
 
     // Drone Behavouir Parameters
@@ -88,61 +89,94 @@ public class Drone : MonoBehaviour {
 
     public void Update() 
     {
-        if (action_stack.Count != 0){ // Things to do on the stack
+        if (!parked){
+            if (action_stack.Count != 0){ // Things to do on the stack
 
-            bool ret= false;
-            switch(action_stack[0].action){
+                bool ret= false;
+                switch(action_stack[0].action){
 
-                case ActionType.GoTo:
-                    ret = GoTo((Vector3) action_stack[0].target);
-                    break;
+                    case ActionType.GoTo:
+                        ret = GoTo((Vector3) action_stack[0].target);
+                        break;
 
-                case ActionType.TakeOff:
-                    ret = TakeOff();
-                    break;
+                    case ActionType.TakeOff:
+                        ret = TakeOff();
+                        break;
 
-                case ActionType.Land:
-                    ret = Land();
-                    break;
+                    case ActionType.Land:
+                        ret = Land((Vector3) action_stack[0].target);
+                        break;
 
-                case ActionType.Maintain:
-                    ret = Maintain((Vector3) action_stack[0].target);
-                    break;
+                    case ActionType.Maintain:
+                        ret = Maintain((Vector3) action_stack[0].target);
+                        break;
 
-            }
+                    case ActionType.FaceTowards:
+                        ret = FaceTowards((Vector3) action_stack[0].target);
+                        break;
 
-            if (ret){action_stack.RemoveAt(0);}
-        
-        }
-        else { // Nothing on the stack, put things on the stack
-            Job? job = nextJob();
-            if (job != null){
-                Job tmp = (Job) job;
-                switch(tmp.jobtype){
+                    case ActionType.Deliver:
+                        ret = Deliver();
+                        break;
 
-                    case JobType.Scan:
-                        action_stack.Add(new Action(ActionType.TakeOff));
-                        Vector3 target= tmp.targetTurbineID;
-                        target += Vector3.Normalize(target - transform.position)*100;
-                        target.y = aviation_plane;
-                        action_stack.Add(new Action(ActionType.GoTo, target));
-                        action_stack.Add(new Action(ActionType.Maintain, tmp.targetTurbineID));
-                        action_stack.Add(new Action(ActionType.TakeOff));
+                    case ActionType.PickUp:
+                        ret = PickUp();
                         break;
 
                 }
-                jobs_queue.Remove(tmp);
+
+                if (ret){action_stack.RemoveAt(0);}
+            
             }
-            else {
-                // Return to base
-                action_stack.Add(new Action(ActionType.TakeOff));
-                action_stack.Add(new Action(ActionType.GoTo, closestHubTurbine(transform.position)));
-                action_stack.Add(new Action(ActionType.Land));
+            else { // Nothing on the stack, put things on the stack
+                Job? job = nextJob();
+                if (job != null){
+                    Job tmp = (Job) job;
+                    Vector3 target;
+                    switch(tmp.jobtype){
+
+                        case JobType.Scan:
+                            action_stack.Add(new Action(ActionType.TakeOff));
+                            target= tmp.targetTurbineID;
+                            target += Vector3.Normalize(transform.position - target)*150;
+                            target.y = aviation_plane;
+                            action_stack.Add(new Action(ActionType.GoTo, target));
+                            action_stack.Add(new Action(ActionType.FaceTowards, tmp.targetTurbineID));
+                            action_stack.Add(new Action(ActionType.Maintain, tmp.targetTurbineID));
+                            action_stack.Add(new Action(ActionType.TakeOff));
+                            break;
+
+                        case JobType.Delivary:
+                            action_stack.Add(new Action(ActionType.TakeOff));
+                            target= (Vector3) tmp.startTurbineID;
+                            target.y = aviation_plane;
+                            action_stack.Add(new Action(ActionType.GoTo, target));
+                            action_stack.Add(new Action(ActionType.Land, target));
+                            action_stack.Add(new Action(ActionType.PickUp));
+                            action_stack.Add(new Action(ActionType.TakeOff));
+                            target= tmp.targetTurbineID;
+                            target.y = aviation_plane;
+                            action_stack.Add(new Action(ActionType.GoTo, target));
+                            action_stack.Add(new Action(ActionType.Land, target));
+                            action_stack.Add(new Action(ActionType.Deliver));
+                            break;
+
+                    }
+                    jobs_queue.Remove(tmp);
+                }
+                else {
+                    // Return to base
+                    action_stack.Add(new Action(ActionType.TakeOff));
+                    action_stack.Add(new Action(ActionType.GoTo, closestHubTurbine(transform.position)));
+                    action_stack.Add(new Action(ActionType.Land, closestHubTurbine(transform.position)));
+                }
             }
+            velocity = Vector3.Scale(velocity, new Vector3(0.99F, 0.99F, 0.99F));
         }
 
-        battery_percentage-= 0.001F;
-        velocity = Vector3.Scale(velocity, new Vector3(0.99F, 0.99F, 0.99F));
+        if (!charging){
+            battery_percentage-= 0.003F;
+        }
 
     }
 
@@ -162,12 +196,25 @@ public class Drone : MonoBehaviour {
         return GoTo(above);
     }
 
-    bool Land()
+    bool Land(Vector3 target)
     {
-        Vector3 below = transform.position;
-        below.y = 0f;
+        target.y= 215f;
 
-        return GoTo(below);
+        if (GoTo(target)){
+            // parked = true;
+            return true;
+        }
+        return false;
+    }
+
+    bool Deliver(){
+        carrying_item= false;
+        return true;
+    }
+
+    bool PickUp(){
+        carrying_item= true;
+        return true;
     }
 
     bool Maintain(Vector3 target)
@@ -175,10 +222,21 @@ public class Drone : MonoBehaviour {
         Vector3 height_target= target;
         height_target.y = transform.position.y;
 
-        transform.forward = Vector3.RotateTowards(transform.forward, height_target-transform.position, Mathf.PI/256, 1.0f);
-        UnityMove(transform.right+transform.forward+(Vector3.up*-0.4f), 1F);
+        transform.forward = Vector3.RotateTowards(transform.forward, height_target-transform.position, Mathf.PI/16, 1.0f);
+        UnityMove(transform.right*4+transform.forward+(Vector3.up*-0.6f), 1F);
 
         if (transform.position.y < 20f){
+            return true;
+        }
+        return false;
+    }
+
+    bool FaceTowards(Vector3 target){
+        target.y = aviation_plane;
+
+        transform.forward = Vector3.RotateTowards(transform.forward, target-transform.position, Mathf.PI/128, 1.0f);
+
+        if (Vector3.Angle(transform.forward, target-transform.position) < 5f){
             return true;
         }
         return false;
