@@ -27,7 +27,7 @@ public class Drone : MonoBehaviour {
 
 
     // Drone Behavouir Parameters
-    private float battery_level_tolerance= 10F;
+    public float battery_level_tolerance= 10F;
     private float aviation_plane = 300F;
     private float start_slowdown_dist = 100F;
     private float goto_precision_dist = 30F;
