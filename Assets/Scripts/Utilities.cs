@@ -45,20 +45,35 @@ public static class Utilities
 
     public static float jobRank(Job job){
         // !00 for 100 seconds, e.g. Don't even think about it until 100 seconds
-        return Mathf.Pow(100 - Mathf.Clamp(Mathf.Abs(job.deadline - Time.time), 0, 100), 2)*job.priority + job.priority;
+        // return Mathf.Pow(100 - Mathf.Clamp(Mathf.Abs(job.deadline - Time.time), 0, 100), 2)*job.priority + job.priority;
+        return Mathf.Clamp(Mathf.Abs(job.deadline - Time.time), 0, 100)*job.priority + job.priority;
     }
 
-    public static int argMax(List<float> list){
+    public static (float value, int arg) argMax(float[] list){
         int argmax = 0;
         float max = float.MinValue;
 
-        for (int i=0; i<list.Count; i++){
+        for (int i=0; i<list.Length; i++){
             if (list[i] > max){
                 argmax = i;
                 max = list[i];
             }
         }
         
-        return argmax;
+        return (max, argmax);
+    }
+
+    public static (float value, int arg) argMin(float[] list){
+        int argmin = 0;
+        float min = float.MaxValue;
+
+        for (int i=0; i<list.Length; i++){
+            if (list[i] < min){
+                argmin = i;
+                min = list[i];
+            }
+        }
+        
+        return (min, argmin);
     }
 }

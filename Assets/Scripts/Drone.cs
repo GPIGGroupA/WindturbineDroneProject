@@ -29,6 +29,8 @@ public class Drone : MonoBehaviour {
     // Drone Behavouir Parameters
     public float battery_level_tolerance= 10F;
     private float aviation_plane = 300F;
+    private float lowest_water_plane = 20f;
+    private float landing_plane = 215f;
     private float start_slowdown_dist = 100F;
     private float goto_precision_dist = 30F;
     private float goto_precision_vel = 1f;
@@ -136,7 +138,6 @@ public class Drone : MonoBehaviour {
                     switch(tmp.jobtype){
 
                         case JobType.Scan:
-                            Debug.Log(JobSubsetBatteryAndTimeCost(jobs_queue));
                             action_stack.Add(new Action(ActionType.TakeOff));
                             target= tmp.targetTurbineID;
                             target += Vector3.Normalize(transform.position - target)*150;
@@ -279,58 +280,100 @@ public class Drone : MonoBehaviour {
         return Mathf.Pow(battery_percentage/10, 2);
     }
 
-    public (float, float) JobBatteryAndTimeCost(Job job, Vector3 startpoi){
+    public (float time, float perc, float dist) travelpoint2pointTPD(Vector3 a, Vector3 b){
+        float dist = (a-b).magnitude;
+        float time = dist/38.2f;
+        float perc = time*0.18f;
+        return (time, perc, dist);
+    }
 
-        float time = 0;
-        float perc = 0;
-        float dist = 0;
+    public (float time, float perc, float dist) gohomeTPD(Vector3 pos){
+        float time = 0, perc = 0, dist = 0;
+        float dt, dp, dd;
 
-        if (job.jobtype == JobType.Scan){
-            dist += aviation_plane - startpoi.y; //TakeOff
-            startpoi.y = aviation_plane;
-            dist += (job.targetTurbineID - startpoi).magnitude; //GoTo
-            dist += aviation_plane - 20f; //TakeOff
+        Vector3 home = closestHubTurbine(pos);
 
-            time = dist/38.2f;
+        // GoTo home
+        (dt, dp, dd) = travelpoint2pointTPD(pos, new Vector3(home.x, aviation_plane, home.z));
+        time+= dt; perc+= dp; dist+= dd;
+        pos = new Vector3(home.x, aviation_plane, home.z);
 
-            time += 3; // Rotation
-            time += 44; // Maintain
-            perc = time*0.18f;
+        // Land home
+        (dt, dp, dd) = travelpoint2pointTPD(pos, new Vector3(pos.x, landing_plane, pos.z));
+        time+= dt; perc+= dp; dist+= dd;
+
+        return (time, perc, dist);
+    }
+
+    public (float time, float perc, float dist) JobTPD(Job job, Vector3 poi){
+        float time = 0, perc = 0, dist = 0;
+        float dt, dp, dd;
+
+        // TakeOff
+        (dt, dp, dd) = travelpoint2pointTPD(poi, new Vector3(poi.x, aviation_plane, poi.z));
+        time+= dt; perc+= dp; dist+= dd;
+        poi.y = aviation_plane;
+
+
+        switch (job.jobtype){
+
+            case JobType.Delivary:
+                // GoTo pickup point
+                (dt, dp, dd) = travelpoint2pointTPD(poi, new Vector3(((Vector3)job.startTurbineID).x, aviation_plane, ((Vector3)job.startTurbineID).z));
+                time+= dt; perc+= dp; dist+= dd;
+                poi = new Vector3(((Vector3)job.startTurbineID).x, aviation_plane, ((Vector3)job.startTurbineID).z);
+
+                // Land, Pickup, TakeOff
+                (dt, dp, dd) = travelpoint2pointTPD(poi, new Vector3(poi.x, landing_plane, poi.z));
+                time+= dt*2; perc+= dp*2; dist+= dd*2;
+
+                // GoTo dropoff point
+                (dt, dp, dd) = travelpoint2pointTPD(poi, new Vector3(job.targetTurbineID.x, aviation_plane, job.targetTurbineID.z));
+                time+= dt; perc+= dp; dist+= dd;
+                poi = new Vector3(job.targetTurbineID.x, aviation_plane, job.targetTurbineID.z);
+
+                // Land, DropOff, TakeOff
+                (dt, dp, dd) = travelpoint2pointTPD(poi, new Vector3(poi.x, landing_plane, poi.z));
+                time+= dt*2; perc+= dp*2; dist+= dd*2;
+
+                break;
+
+            case JobType.Scan:
+                // GoTo scan location point
+                (dt, dp, dd) = travelpoint2pointTPD(poi, new Vector3(job.targetTurbineID.x, aviation_plane, job.targetTurbineID.z));
+                time+= dt; perc+= dp; dist+= dd;
+                poi = new Vector3(job.targetTurbineID.x, aviation_plane, job.targetTurbineID.z);
+
+                // Scan
+                time+= 44f; perc+= 44f*0.18f; dist+= 0f; // TODO: Calculate the distance covered
+                poi.y = lowest_water_plane;
+
+                // TakeOff
+                (dt, dp, dd) = travelpoint2pointTPD(poi, new Vector3(poi.x, aviation_plane, poi.z));
+                time+= dt; perc+= dp; dist+= dd;
+
+                break;
         }
-        else if (job.jobtype == JobType.Delivary){
-            dist += aviation_plane - startpoi.y; //TakeOff
-            startpoi.y = aviation_plane;
-            dist += ((Vector3) job.startTurbineID - startpoi).magnitude; //GoTo pickup
-            startpoi = (Vector3) job.startTurbineID;
-            startpoi.y = aviation_plane;
-            dist += 2*(aviation_plane - 215f); // Land Pickup Takeoff
-            dist += (job.targetTurbineID - startpoi).magnitude; //GoTo dropoff
-            dist += 2*(aviation_plane - 215f); // Land Dropoff Takeoff
 
-            time = dist/38.2f;
-            perc = time*0.18f;
-        }
-
-        return (time, perc);
+        return (time, perc, dist);
 
     }
 
-    public (float, float) JobSubsetBatteryAndTimeCost(List<Job> jobs){
-        float time = 0;
-        float perc = 0;
+    public (float time, float perc, float dist) JobSubsetTPD(List<Job> jobs){
+        float time = 0, perc = 0, dist = 0;
+        float dt, dp, dd;
 
-        Vector3 pos = transform.position;
+        Vector3 simpos = transform.position;
         foreach(Job job in jobs){
-            (float dt, float dp)= JobBatteryAndTimeCost(job, pos);
-            pos = job.targetTurbineID;
-            pos.y = aviation_plane;
-            time+= dt;
+            (dt, dp, dd) = JobTPD(job, simpos);
+            time+= dt; perc+= dp; dist+= dd;
+            simpos = new Vector3(job.targetTurbineID.x, aviation_plane, job.targetTurbineID.z);
         }
 
-        time += ((closestHubTurbine(pos) - pos).magnitude + aviation_plane - 215f)/38.2f;
-        perc = time*0.18f;
+        (dt, dp, dd) = gohomeTPD(simpos);
+        time+= dt; perc+= dp; dist += dd;
 
-        return (time, perc);
+        return (time, perc, dist);
     }
 
 }

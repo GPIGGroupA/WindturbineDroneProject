@@ -36,7 +36,7 @@ public class HubTurbine : WindTurbine
         jobs_queue.Add(new Job(
             new Vector3(1000f, 0f, 0f),
             JobType.Delivary,
-            4,
+            1,
             100,
             0,
             new Vector3(1000f, 0f, 290f)
@@ -45,14 +45,13 @@ public class HubTurbine : WindTurbine
         jobs_queue.Add(new Job(
             new Vector3(1000f, 0f, 290f),
             JobType.Delivary,
-            4,
+            1,
             100,
             0,
             new Vector3(1000f, 0f, 0f)
         ));
 
-        (List<Job> t, float fhf) = jobSubsetGeneration(drone1.GetComponent<Drone>());
-        drone1.GetComponent<Drone>().jobs_queue = t;
+        drone1.GetComponent<Drone>().jobs_queue = jobSubsetGeneration(drone1.GetComponent<Drone>());
 
         commisionDrone(0);
     }
@@ -75,76 +74,68 @@ public class HubTurbine : WindTurbine
         // drone.GetComponent<Drone>().jobs_queue.Add(jobs_queue[2]);
     }
 
-    public (List<Job>, float) jobSubsetGeneration(Drone drone){
+    public List<Job> jobSubsetGeneration(Drone drone){
         List<Job> res = new List<Job>();
+        float time= 0, perc= 0, dist= 0;
 
-        // Gets intital job gets highest job rank and marked
-        Job maxjob = jobs_queue[0];
-        bool marked = false;
-        float maxjobrank = float.MinValue;
-        foreach (Job job in jobs_queue){
+        // Get initial job
+        bool marked_flag = false;
+        int argmin = 0; float min = float.MaxValue;
 
-            bool dm = false;
-            (float dt, float dp) = drone.JobBatteryAndTimeCost(job, drone.transform.position);
-            float dr = Utilities.jobRank(job);
-            
-            // If marked
-            if (job.deadline <= Time.time + dt){
-                dm = true;
-            }
+        for (int i=0; i<jobs_queue.Count; i++){
+            (float dt, float dp, float dd) = drone.JobTPD(jobs_queue[i], drone.transform.position);
+            float dr = Utilities.jobRank(jobs_queue[i])*dp;
+            bool dm = jobs_queue[i].deadline <= Time.time + dt ? true : false;
 
-            if (marked && dm && maxjobrank < dr) {
-                maxjob = job;
-                maxjobrank = dr;
-            } else if (!marked && dm) {
-                marked = true;
-                maxjob = job;
-                maxjobrank = dr;
-            }
-            else if (maxjobrank < dr) {
-                maxjob = job;
-                maxjobrank = dr;
+            if (min > dr || dm) {
+                min = dr;
+                argmin = i;
+
+                if (!marked_flag && dm){
+                    marked_flag = true;
+                }
             }
         }
-        res.Add(maxjob);
-        jobs_queue.Remove(maxjob);
-        (float _, float batcost) = drone.JobSubsetBatteryAndTimeCost(res);
+        res.Add(jobs_queue[argmin]);
+        jobs_queue.RemoveAt(argmin);
 
 
         bool loop = true;
-        while (loop){
+        while (loop) {
 
-            float maxheur = float.MinValue;
-            int maxpos = 0;
-
+            float[] hueristics = new float[(res.Count+1)*jobs_queue.Count];
+            
             for (int i=0; i<=res.Count; i++){
-                foreach (Job job in jobs_queue){
-                    float heur = Utilities.jobRank(job)*Mathf.Clamp(800 - Utilities.shortestDistanceToLine(i==0 ? drone.transform.position : res[i-1].targetTurbineID, i==res.Count ? drone.closestHubTurbine(res[i-1].targetTurbineID) : res[i].targetTurbineID, job.targetTurbineID), 0, 800);
+                for (int j=0; j<jobs_queue.Count; j++){
 
-                    if (heur > maxheur){
-                        maxjob = job;
-                        maxpos = i;
-                        maxheur = heur;
-                    }
+                    res.Insert(i, jobs_queue[j]);
+                    (float dt, float dp, float dd) = drone.JobSubsetTPD(res);
+                    res.RemoveAt(i);
 
+                    hueristics[i*jobs_queue.Count+j] = Utilities.jobRank(jobs_queue[j])*dp;
                 }
             }
 
-            res.Insert(maxpos, maxjob);
-            (_, batcost) = drone.JobSubsetBatteryAndTimeCost(res);
+            (float m, float am) = Utilities.argMin(hueristics);
+            int posInRes = ((int)am) / jobs_queue.Count;
+            int minJobIdx = ((int)am) % jobs_queue.Count;
 
-            if (batcost + drone.battery_level_tolerance > drone.battery_percentage){
-                res.Remove(maxjob);
+            res.Insert(posInRes, jobs_queue[minJobIdx]);
+            (time, perc, dist) = drone.JobSubsetTPD(res);
+
+            if (perc + drone.battery_level_tolerance > drone.battery_percentage) {
+                res.RemoveAt(posInRes);
                 loop = false;
-            } else if (jobs_queue.Count<=1){
-                loop = false;
-                jobs_queue.Remove(maxjob);
-            } else {
-                jobs_queue.Remove(maxjob);
+            }
+            else {
+                jobs_queue.RemoveAt(minJobIdx);
+                if (jobs_queue.Count <= 0){
+                    loop = false;
+                }
             }
 
         }
 
-        return (res, batcost);
+        return res;
     }
 }
