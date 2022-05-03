@@ -95,4 +95,16 @@ public class UIController : MonoBehaviour
             selectedObject = null;
         }
     }
+
+    public void IncreaseProblemLevel(){ // TODO: here
+
+    }
+
+    public void ForceScanNow(){ // TODO: here
+
+    }
+
+    public void ForceDelivary(){ // TODO: here
+
+    }
 }

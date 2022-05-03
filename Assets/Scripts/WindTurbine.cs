@@ -28,4 +28,9 @@ public class WindTurbine : MonoBehaviour
             if (problem_level > 1){problem_level= 1;}
         }
     }
+
+    void OnMouseDown(){ // TODO: here
+        // this object was clicked - do something
+        Debug.Log("hit");
+    }
 }

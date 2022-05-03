@@ -165,8 +165,8 @@ public class Drone : MonoBehaviour {
                 else {
                     // Return to base
                     action_stack.Add(new Action(ActionType.TakeOff));
-                    action_stack.Add(new Action(ActionType.GoTo, closestHubTurbine(transform.position)));
-                    action_stack.Add(new Action(ActionType.Land, closestHubTurbine(transform.position)));
+                    action_stack.Add(new Action(ActionType.GoTo, Utilities.closestHubTurbine(transform.position)));
+                    action_stack.Add(new Action(ActionType.Land, Utilities.closestHubTurbine(transform.position)));
                 }
             }
             velocity = Vector3.Scale(velocity, new Vector3(0.99F, 0.99F, 0.99F));
@@ -261,10 +261,6 @@ public class Drone : MonoBehaviour {
         return null;
     }
 
-    public Vector3 closestHubTurbine(Vector3 startpoi){
-        return new Vector3(1000f, aviation_plane, 0f);
-    }
-
     public float willingnessToDeploy(){
         return Mathf.Pow(battery_percentage/10, 2);
     }
@@ -280,7 +276,7 @@ public class Drone : MonoBehaviour {
         float time = 0, perc = 0, dist = 0;
         float dt, dp, dd;
 
-        Vector3 home = closestHubTurbine(pos);
+        Vector3 home = Utilities.closestHubTurbine(pos);
 
         // GoTo home
         (dt, dp, dd) = travelpoint2pointTPD(pos, new Vector3(home.x, aviation_plane, home.z));

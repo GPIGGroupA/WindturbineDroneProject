@@ -44,8 +44,6 @@ public static class Utilities
     }
 
     public static float jobRank(Job job){
-        // !00 for 100 seconds, e.g. Don't even think about it until 100 seconds
-        // return Mathf.Pow(100 - Mathf.Clamp(Mathf.Abs(job.deadline - Time.time), 0, 100), 2)*job.priority + job.priority;
         return Mathf.Clamp(Mathf.Abs(job.deadline - Time.time), 0, 100)*job.priority + job.priority;
     }
 
@@ -83,5 +81,10 @@ public static class Utilities
 
     public static bool pointInRangeOfPoint(Vector3 a, Vector3 b, float r){
         return (a-b).magnitude < r;
+    }
+
+    public static Vector3 closestHubTurbine(Vector3 startpoi){ // TODO: here
+        GameController gameController = GameObject.Find("GameController").GetComponent<GameController>();
+        return (Vector3) gameController.locationOfTurbineWithID(gameController.closestHubTurbine(startpoi));
     }
 }

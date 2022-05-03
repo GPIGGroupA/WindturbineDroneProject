@@ -42,4 +42,25 @@ public class GameController : MonoBehaviour
         allDrones.AddRange(GameObject.FindGameObjectsWithTag("Drone"));
         allBoats.AddRange(GameObject.FindGameObjectsWithTag("Boat"));
     }
+
+    public Vector3? locationOfTurbineWithID(string id){
+        foreach (GameObject t in allWindTurbines){
+            WindTurbine turbine= t.GetComponent<WindTurbine>();
+            if (turbine.id == id) {return turbine.transform.position;}
+        }
+        foreach (GameObject t in allHubTurbines){
+            HubTurbine turbine= t.GetComponent<HubTurbine>();
+            if (turbine.id == id) {return turbine.transform.position;}
+        }
+        return null;
+    }
+
+    public string closestHubTurbine(Vector3 poi){
+        float[] dists = new float[allHubTurbines.Count];
+        for (int i=0; i<allHubTurbines.Count; i++){
+            dists[i] = (((GameObject) allHubTurbines[i]).GetComponent<HubTurbine>().transform.position - poi).magnitude;
+        }
+        (float m, int am)= Utilities.argMin(dists);
+        return ((GameObject) allHubTurbines[am]).GetComponent<HubTurbine>().id;
+    }
 }
