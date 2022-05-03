@@ -48,7 +48,7 @@ public static class Utilities
     }
 
     public static bool isJobMarked(Job job, Drone drone, float dt){
-        return job.deadline <= Time.time + dt ? true : false;
+        return job.deadline <= Time.time + dt;
     }
 
     public static (float value, int arg) argMax(float[] list){

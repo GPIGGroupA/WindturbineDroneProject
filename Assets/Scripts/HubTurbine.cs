@@ -28,49 +28,48 @@ public class HubTurbine : WindTurbine
         );
         pad.holdChargingDrone(drone1);
 
+        jobs_queue.Add(new Job(
+            new Vector3(1000f, 0f, 290f),
+            JobType.Scan,
+            1,
+            20
+        ));
+
         // jobs_queue.Add(new Job(
-        //     // new Vector3(1000f, 0f, 290f),
-        //     new Vector3(1000f, 0f, 2900000000f),
-        //     JobType.Scan,
+        //     transform.position,
+        //     JobType.Delivary,
         //     1,
-        //     80
+        //     100,
+        //     0,
+        //     new Vector3(1000f, 0f, 290f)
         // ));
 
-        jobs_queue.Add(new Job(
-            transform.position,
-            JobType.Delivary,
-            1,
-            100,
-            0,
-            new Vector3(1000f, 0f, 290f)
-        ));
+        // jobs_queue.Add(new Job(
+        //     new Vector3(1000f, 0f, 290f),
+        //     JobType.Delivary,
+        //     1,
+        //     100,
+        //     0,
+        //     transform.position
+        // ));
 
-        jobs_queue.Add(new Job(
-            new Vector3(1000f, 0f, 290f),
-            JobType.Delivary,
-            1,
-            100,
-            0,
-            transform.position
-        ));
+        // jobs_queue.Add(new Job(
+        //     transform.position,
+        //     JobType.Delivary,
+        //     2,
+        //     100,
+        //     0,
+        //     new Vector3(1000f, 0f, 290f)
+        // ));
 
-        jobs_queue.Add(new Job(
-            transform.position,
-            JobType.Delivary,
-            2,
-            100,
-            0,
-            new Vector3(1000f, 0f, 290f)
-        ));
-
-        jobs_queue.Add(new Job(
-            new Vector3(1000f, 0f, 290f),
-            JobType.Delivary,
-            2,
-            100,
-            0,
-            transform.position
-        ));
+        // jobs_queue.Add(new Job(
+        //     new Vector3(1000f, 0f, 290f),
+        //     JobType.Delivary,
+        //     2,
+        //     100,
+        //     0,
+        //     transform.position
+        // ));
 
     }
 
@@ -125,7 +124,7 @@ public class HubTurbine : WindTurbine
         // If marked job then go
         for (int i=0; i<jobs_queue.Count; i++){
             (dt, dp, dd) = bestdrone.JobTPD(jobs_queue[i], bestdrone.transform.position);
-            if (jobs_queue[i].deadline <= Time.time + dt && Utilities.pointInRangeOfPoint(transform.position, jobs_queue[i].targetTurbineID, servicable_range)){
+            if (Utilities.isJobMarked(jobs_queue[i], bestdrone, dt) && Utilities.pointInRangeOfPoint(transform.position, jobs_queue[i].targetTurbineID, servicable_range)){
                 return am;
             }
         }
@@ -178,7 +177,7 @@ public class HubTurbine : WindTurbine
         jobs_queue.RemoveAt(argmin);
 
 
-        bool loop = true;
+        bool loop = jobs_queue.Count>0;
         while (loop) {
 
             float[] hueristics = new float[(res.Count+1)*jobs_queue.Count];

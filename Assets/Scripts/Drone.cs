@@ -215,7 +215,7 @@ public class Drone : MonoBehaviour {
         return true;
     }
 
-    bool Maintain(Vector3 target)
+    bool Maintain(Vector3 target) // TODO: Make it look pretty
     {
         Vector3 height_target= target;
         height_target.y = transform.position.y;
