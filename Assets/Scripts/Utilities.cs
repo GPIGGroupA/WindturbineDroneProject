@@ -49,6 +49,10 @@ public static class Utilities
         return Mathf.Clamp(Mathf.Abs(job.deadline - Time.time), 0, 100)*job.priority + job.priority;
     }
 
+    public static bool isJobMarked(Job job, Drone drone, float dt){
+        return job.deadline <= Time.time + dt ? true : false;
+    }
+
     public static (float value, int arg) argMax(float[] list){
         int argmax = 0;
         float max = float.MinValue;
@@ -75,5 +79,9 @@ public static class Utilities
         }
         
         return (min, argmin);
+    }
+
+    public static bool pointInRangeOfPoint(Vector3 a, Vector3 b, float r){
+        return (a-b).magnitude < r;
     }
 }

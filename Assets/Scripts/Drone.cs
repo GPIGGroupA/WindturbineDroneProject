@@ -44,36 +44,31 @@ public class Drone : MonoBehaviour {
 
 
     // Unity things
-    void UnityMove(Vector3 targetDirection, float deltaForcePerc)
-    {
-        Vector3 deltaVelocity = Vector3.Normalize(targetDirection)*(max_deltaforce*deltaForcePerc);
-        Vector3 nextFrameVelocity = Vector3.ClampMagnitude(velocity + deltaVelocity, max_speed);
+    void UnityMove(Vector3 targetDirection, float deltaForcePerc){
 
+        // Coords calc
+        Vector3 nextFrameVelocity = Vector3.ClampMagnitude(
+            velocity + Vector3.Normalize(targetDirection)*(max_deltaforce*deltaForcePerc), 
+            max_speed
+        );
         velocity = nextFrameVelocity;
         transform.position = transform.position + nextFrameVelocity*Time.deltaTime;
-    }
 
-    void UnityRotateAnimation(Vector3 targetDirection, float force){
-        Vector3 targetDroneRotation;
+
+        // Roll and pitch
+        Vector3 nextDronePR = targetDirection;
         if (Vector3.Angle(targetDirection, Vector3.down)<=90f){
             Vector3 normal = Vector3.Normalize(targetDirection);
-            normal.y = 0;
-
-            targetDroneRotation = Vector3.Reflect(targetDirection*-1.0f, normal);
-        } else {
-            targetDroneRotation = targetDirection;
+            nextDronePR = Vector3.Reflect(targetDirection*-1.0f, new Vector3(normal.x, 0, normal.z));
         }
+        nextDronePR = Vector3.Normalize(nextDronePR);
 
-        targetDroneRotation = Vector3.Normalize(targetDroneRotation);
-
-        // Make the rotation smaller for realism
-        float angle= ((float) Mathf.Deg2Rad * Vector3.Angle(targetDroneRotation, Vector3.up) * (1-force)*Mathf.PI/2) + Mathf.PI/4;
-        targetDroneRotation = Vector3.RotateTowards(targetDroneRotation, Vector3.up, angle, 1.0f);
-
-        Vector3 nextFrameDirection = Vector3.RotateTowards(transform.up, targetDroneRotation, turnspeed*Time.deltaTime, 0.0f);
-
+        float angle= ((float) Mathf.Deg2Rad * Vector3.Angle(nextDronePR, Vector3.up) * (1-deltaForcePerc)*Mathf.PI/2) + Mathf.PI/4;
+        nextDronePR = Vector3.RotateTowards(nextDronePR, Vector3.up, angle, 1.0f);
+        Vector3 nextFrameDirection = Vector3.RotateTowards(transform.up, nextDronePR, turnspeed*Time.deltaTime, 0.0f);
         transform.up = nextFrameDirection;
     }
+
 
     void OnTriggerEnter(Collider collider)
     {
@@ -252,16 +247,10 @@ public class Drone : MonoBehaviour {
         if (target!=null){
             Vector3 targetDirection = (Vector3) target - transform.position;
             float deltaForcePerc= Mathf.Clamp(targetDirection.magnitude/start_slowdown_dist, 0, 1);
-
             UnityMove(targetDirection, deltaForcePerc);
-            UnityRotateAnimation(
-                targetDirection,
-                deltaForcePerc
-            );
         }
         else {
-            UnityMove(Vector3.zero, 0F);
-            UnityRotateAnimation(Vector3.up, 0F);
+            UnityMove(Vector3.up, 0f);
         }
     }
 

@@ -20,21 +20,19 @@ public class LandingPad
     public void Update(){
         // Charge Drones
         foreach (GameObject drone in charging_pads){
-            if (drone != null){
-                //get the script
-                Drone droneScript = drone.GetComponent<Drone>();
-                if (droneScript!=null && droneScript.battery_percentage < 100F){
-                    droneScript.battery_percentage+= chargeRate;
-                    if (droneScript.battery_percentage > 100F){
-                        droneScript.battery_percentage= 100F;
-                    }
+            //get the script
+            Drone droneScript = drone.GetComponent<Drone>();
+            if (droneScript!=null && droneScript.battery_percentage < 100F){
+                droneScript.battery_percentage+= chargeRate;
+                if (droneScript.battery_percentage > 100F){
+                    droneScript.battery_percentage= 100F;
                 }
             }
         }
 
     }
 
-    public bool holdChargingDrone(GameObject drone, int ind){
+    public bool holdChargingDrone(GameObject drone){
         if (charging_pads.Count < num_chargepads) {
             charging_pads.Add(drone);
             return true;
@@ -51,33 +49,20 @@ public class LandingPad
     // }
 
 
-    public GameObject releaseChargingDrone(int ind){
-        GameObject res = charging_pads[ind];
-        charging_pads[ind]= null;
-        return res;
+    public GameObject? releaseChargingDrone(int ind){
+        if (ind >= charging_pads.Count) {
+            return null;
+        } else {
+            GameObject res = charging_pads[ind];
+            charging_pads.RemoveAt(ind);
+            return res;
+        }
     }
 
     // public GameObject releaseNonChargingObject(int ind){
     //     GameObject res = non_charging_pads[ind];
     //     non_charging_pads[ind]= null;
     //     return res;
-    // }
-
-
-    public int openChargingPad(){
-        if (charging_pads.Count + 1 < num_chargepads) {
-            return charging_pads.Count + 1;
-        }
-        return -1;
-    }
-
-    // public int openNonChargingPad(){
-    //     for (int i=0; i<non_charging_pads.Length; i++){
-    //         if (non_charging_pads[i]==null){
-    //             return i;
-    //         }
-    //     }
-    //     return -1;
     // }
 
 }

@@ -7,6 +7,8 @@ public class HubTurbine : WindTurbine
     // HubTurbine Infomation
     public LandingPad pad = new LandingPad(9, 0);
     public List<Job> jobs_queue = new List<Job>();
+    public float workload = 0f;
+    private float servicable_range = 8000f;
 
 
     // Unity Infomation
@@ -24,17 +26,18 @@ public class HubTurbine : WindTurbine
             this.transform.position + new Vector3(0, 105, 0),
             Quaternion.identity
         );
-        pad.holdChargingDrone(drone1, 0);
+        pad.holdChargingDrone(drone1);
+
+        // jobs_queue.Add(new Job(
+        //     // new Vector3(1000f, 0f, 290f),
+        //     new Vector3(1000f, 0f, 2900000000f),
+        //     JobType.Scan,
+        //     1,
+        //     80
+        // ));
 
         jobs_queue.Add(new Job(
-            new Vector3(1000f, 0f, 290f),
-            JobType.Scan,
-            1,
-            100
-        ));
-
-        jobs_queue.Add(new Job(
-            new Vector3(1000f, 0f, 0f),
+            transform.position,
             JobType.Delivary,
             1,
             100,
@@ -48,33 +51,108 @@ public class HubTurbine : WindTurbine
             1,
             100,
             0,
-            new Vector3(1000f, 0f, 0f)
+            transform.position
         ));
 
-        drone1.GetComponent<Drone>().jobs_queue = jobSubsetGeneration(drone1.GetComponent<Drone>());
+        jobs_queue.Add(new Job(
+            transform.position,
+            JobType.Delivary,
+            2,
+            100,
+            0,
+            new Vector3(1000f, 0f, 290f)
+        ));
 
-        commisionDrone(0);
+        jobs_queue.Add(new Job(
+            new Vector3(1000f, 0f, 290f),
+            JobType.Delivary,
+            2,
+            100,
+            0,
+            transform.position
+        ));
+
     }
 
     void Update()
     {
         base.Update();
         pad.Update();
+
+        int whichdrone = shouldAndWhichDroneToDeploy();
+        if (whichdrone != -1){
+            pad.charging_pads[whichdrone].GetComponent<Drone>().jobs_queue = jobSubsetGeneration(pad.charging_pads[whichdrone].GetComponent<Drone>());
+            commisionDrone(whichdrone);
+        }
     }
 
 
     // Utilitys
-    public void commisionDrone(int ind){
-        GameObject drone = pad.releaseChargingDrone(0);
-        drone.GetComponent<Drone>().parked = false;
-        drone.GetComponent<Drone>().charging = false;
-
-        // drone.GetComponent<Drone>().jobs_queue.Add(jobs_queue[0]);
-        // drone.GetComponent<Drone>().jobs_queue.Add(jobs_queue[1]);
-        // drone.GetComponent<Drone>().jobs_queue.Add(jobs_queue[2]);
+    public float getWorkload(){ // TODO: here
+        // Get average and std of all job counts, use percetage likelihood of being abnormal/ also needs to take into account the amount of drones maybe divide
+        return 0f;
     }
 
-    public List<Job> jobSubsetGeneration(Drone drone){
+    public bool shouldShareDronesWithOtherHub(HubTurbine turb){ // TODO: here
+        // Get all hubtrubines in 2x servicable range, get maximal workload and compare to own, if large diffrence then send one drone at maximum
+        return false;
+    }
+
+    public bool commisionDrone(int ind){
+        GameObject? t = pad.releaseChargingDrone(ind);
+
+        if (t==null){
+            return false;
+        }
+        else {
+            GameObject drone = (GameObject) t;
+            drone.GetComponent<Drone>().parked = false;
+            drone.GetComponent<Drone>().charging = false;
+            return true;
+        }
+    }
+
+    public int shouldAndWhichDroneToDeploy(){
+        if (pad.charging_pads.Count < 1 || jobs_queue.Count < 1){return -1;}
+        float dt, dp, dd;
+
+        // Highest will drone
+        float[] wills = new float[pad.charging_pads.Count];
+        for (int i=0; i<pad.charging_pads.Count; i++){wills[i]= pad.charging_pads[i].GetComponent<Drone>().willingnessToDeploy();}
+        (float m, int am) = Utilities.argMax(wills);
+        Drone bestdrone = pad.charging_pads[am].GetComponent<Drone>();
+
+        // If marked job then go
+        for (int i=0; i<jobs_queue.Count; i++){
+            (dt, dp, dd) = bestdrone.JobTPD(jobs_queue[i], bestdrone.transform.position);
+            if (jobs_queue[i].deadline <= Time.time + dt && Utilities.pointInRangeOfPoint(transform.position, jobs_queue[i].targetTurbineID, servicable_range)){
+                return am;
+            }
+        }
+
+        List<Job> propsedsubset = jobSubsetGeneration(bestdrone);
+        jobSubsetDeGeneration(propsedsubset); // Job subset generation deletes in the queue so make sure to add back
+
+        (dt, dp, dd) = bestdrone.JobSubsetTPD(propsedsubset);
+
+        // Proposed subsets rank value
+        float rankValueInv = 0f;
+        for (int i=0; i<propsedsubset.Count; i++){rankValueInv+= 1000 - Utilities.jobRank(propsedsubset[i]);}
+
+        if (dp * propsedsubset.Count * rankValueInv > 100000){
+            return am;
+        }
+
+        return -1;
+    }
+
+    public void jobSubsetDeGeneration(List<Job> jobs){
+        foreach (Job job in jobs){
+            jobs_queue.Add(job);
+        }
+    }
+
+    public List<Job> jobSubsetGeneration(Drone drone){ // TODO: Make sure marked jobs are done first, also within servicable range
         List<Job> res = new List<Job>();
         float time= 0, perc= 0, dist= 0;
 
@@ -84,8 +162,8 @@ public class HubTurbine : WindTurbine
 
         for (int i=0; i<jobs_queue.Count; i++){
             (float dt, float dp, float dd) = drone.JobTPD(jobs_queue[i], drone.transform.position);
+            bool dm = Utilities.isJobMarked(jobs_queue[i], drone, dt);
             float dr = Utilities.jobRank(jobs_queue[i])*dp;
-            bool dm = jobs_queue[i].deadline <= Time.time + dt ? true : false;
 
             if (min > dr || dm) {
                 min = dr;
