@@ -2,8 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class Utilities
+public static class Util
 {
+
+    public static float aviation_plane= 300f;
+    public static float landing_plane= 215f;
+    public static float water_plane= 0f;
+    public static float drone_minimumn_plane= 20f;
+    public static float hubturbine_servicable_range= 8000f;
+
 
     public static List<GameObject> getObjectsInRange(GameObject parent, float range, string filter="None") {
         Collider[] sphere = Physics.OverlapSphere(parent.transform.position, range);
@@ -28,11 +35,13 @@ public static class Utilities
         return objectsInRange;
     }
 
-    public static float shortestDistanceToLine(Vector3 l1, Vector3 l2, Vector3 p){
+    public static float distanceToPoint(Vector3 p1, Vector3 p2){
+        return (p1 - p2).magnitude;
+    }
+    public static float distanceToLine(Vector3 l1, Vector3 l2, Vector3 p){
         float l1l2 = (l1-l2).magnitude;
         float l1p = (l1-p).magnitude;
         float l2p = (l2-p).magnitude;
-
 
         if (l1p > l1l2){return l1p;}
         else if (l2p > l1l2){return l2p;}
@@ -43,15 +52,7 @@ public static class Utilities
         }
     }
 
-    public static float jobRank(Job job){
-        return Mathf.Clamp(Mathf.Abs(job.deadline - Time.time), 0, 100)*job.priority + job.priority;
-    }
-
-    public static bool isJobMarked(Job job, Drone drone, float dt){
-        return job.deadline <= Time.time + dt;
-    }
-
-    public static (float value, int arg) argMax(float[] list){
+    public static (float value, int arg) max(float[] list){
         int argmax = 0;
         float max = float.MinValue;
 
@@ -64,8 +65,7 @@ public static class Utilities
         
         return (max, argmax);
     }
-
-    public static (float value, int arg) argMin(float[] list){
+    public static (float value, int arg) min(float[] list){
         int argmin = 0;
         float min = float.MaxValue;
 
@@ -79,12 +79,12 @@ public static class Utilities
         return (min, argmin);
     }
 
-    public static bool pointInRangeOfPoint(Vector3 a, Vector3 b, float r){
-        return (a-b).magnitude < r;
-    }
-
-    public static Vector3 closestHubTurbine(Vector3 startpoi){ // TODO: here
+    public static string closestHubTurbine(Vector3 p){
         GameController gameController = GameObject.Find("GameController").GetComponent<GameController>();
-        return (Vector3) gameController.locationOfTurbineWithID(gameController.closestHubTurbine(startpoi));
+        return gameController.closestHubTurbine(p);
+    }
+    public static Vector3? locationOfTurbineWithID(string id){
+        GameController gameController = GameObject.Find("GameController").GetComponent<GameController>();
+        return gameController.locationOfTurbineWithID(id);
     }
 }

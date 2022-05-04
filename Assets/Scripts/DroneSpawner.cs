@@ -17,7 +17,6 @@ public class DroneSpawner : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space)) 
         {
-
             Instantiate(dronePrefab[Random.Range(0, dronePrefab.Length)], this.transform.position + new Vector3(0, 30, 0), Quaternion.identity);
         }
     }

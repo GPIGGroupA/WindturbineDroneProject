@@ -58,9 +58,9 @@ public class GameController : MonoBehaviour
     public string closestHubTurbine(Vector3 poi){
         float[] dists = new float[allHubTurbines.Count];
         for (int i=0; i<allHubTurbines.Count; i++){
-            dists[i] = (((GameObject) allHubTurbines[i]).GetComponent<HubTurbine>().transform.position - poi).magnitude;
+            dists[i] = Util.distanceToPoint(poi, ((GameObject) allHubTurbines[i]).GetComponent<HubTurbine>().transform.position);
         }
-        (float m, int am)= Utilities.argMin(dists);
+        (float m, int am)= Util.min(dists);
         return ((GameObject) allHubTurbines[am]).GetComponent<HubTurbine>().id;
     }
 }

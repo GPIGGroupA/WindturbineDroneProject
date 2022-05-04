@@ -6,21 +6,17 @@ using UnityEngine;
 public class LandingPad
 {
     public float chargeRate = 0.00001F;
-    public List<GameObject> charging_pads = new List<GameObject>();
     public int num_chargepads;
-    // GameObject[] non_charging_pads;
+    public List<GameObject> charging_pads = new List<GameObject>();
 
 
-    public LandingPad(int num_chargepads, int num_nonchargepads){
-        this.num_chargepads = num_chargepads;
-        // non_charging_pads= new GameObject[num_nonchargepads];
+    public LandingPad(int p_num_chargepads){
+        num_chargepads = p_num_chargepads;
     }
-
 
     public void Update(){
         // Charge Drones
         foreach (GameObject drone in charging_pads){
-            //get the script
             Drone droneScript = drone.GetComponent<Drone>();
             if (droneScript!=null && droneScript.battery_percentage < 100F){
                 droneScript.battery_percentage+= chargeRate;
@@ -40,15 +36,6 @@ public class LandingPad
         return false;
     }
 
-    // public bool holdNonChargingObject(GameObject obj, int ind){
-    //     if (non_charging_pads[ind]!=null){
-    //         non_charging_pads[ind]= obj;
-    //         return true;
-    //     }
-    //     return false;
-    // }
-
-
     public GameObject? releaseChargingDrone(int ind){
         if (ind >= charging_pads.Count) {
             return null;
@@ -58,11 +45,5 @@ public class LandingPad
             return res;
         }
     }
-
-    // public GameObject releaseNonChargingObject(int ind){
-    //     GameObject res = non_charging_pads[ind];
-    //     non_charging_pads[ind]= null;
-    //     return res;
-    // }
 
 }
