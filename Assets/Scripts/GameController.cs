@@ -20,6 +20,9 @@ public class GameController : MonoBehaviour
     public Cubemap lightCubemap;
 
     private GameObject rainStorm;
+    private GameObject wind;
+
+    public GameObject nuke;
 
 
     // Start is called before the first frame update
@@ -36,6 +39,8 @@ public class GameController : MonoBehaviour
 
         rainStorm = GameObject.FindGameObjectWithTag("RainStorm");
         rainStorm.SetActive(false);
+        wind = GameObject.FindGameObjectWithTag("Wind");
+        wind.SetActive(false);
 
         UpdateAllEntityReferences();
         
@@ -44,7 +49,7 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        ChangeSunColour();
     }
 
     void UpdateAllEntityReferences()
@@ -65,32 +70,40 @@ public class GameController : MonoBehaviour
         if (rainStorm.activeSelf)
         {
             rainStorm.SetActive(false);
+            wind.SetActive(false);
             RenderSettings.skybox = lightSkybox;
             RenderSettings.customReflection = lightCubemap;
-            ChangeSunColour();
         }
         else 
         {
             rainStorm.SetActive(true);
+            wind.SetActive(true);
             RenderSettings.skybox = darkSkybox;
             RenderSettings.customReflection = darkCubemap;
-            ChangeSunColour();
         }
     }
 
     private void ChangeSunColour() 
     {
-        while (sun.intensity != 1 || sun.intensity != 0)
+        if (rainStorm.activeSelf && sun.intensity > 0)
         {
-            if (rainStorm.activeSelf)
-            {
-                sun.intensity -= 0.05f * Time.deltaTime;
-            }
-            else 
-            {
-                sun.intensity += 0.05f * Time.deltaTime;
-            }
+            sun.intensity -= 0.5f * Time.deltaTime;
         }
+        else if (!rainStorm.activeSelf && sun.intensity < 1)
+        {
+            sun.intensity += Mathf.Clamp01(0.5f * Time.deltaTime);
+        }
+    }
+
+    public void DestroyWindturbine()
+    {
+        GameObject randTurbine = (GameObject)allWindTurbines[Random.Range(0, allWindTurbines.Count)];
+        Transform t = randTurbine.GetComponent<Transform>();
+
+        GameObject n = Instantiate(nuke, t.position, Quaternion.identity);
+        Destroy(randTurbine);
+
+        UpdateAllEntityReferences();
     }
 
     public Vector3? locationOfTurbineWithID(string id){

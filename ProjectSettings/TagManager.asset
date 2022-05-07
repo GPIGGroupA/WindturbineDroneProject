@@ -9,6 +9,9 @@ TagManager:
   - HubTurbine
   - Boat
   - Minimap
+  - RainStorm
+  - Sun
+  - Wind
   layers:
   - Default
   - TransparentFX
