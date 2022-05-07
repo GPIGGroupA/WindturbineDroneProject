@@ -39,6 +39,10 @@ public class UIController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.M))
         {
             minimap.SetActive(minimap.activeSelf ? false : true);
+            if (panel.activeSelf && minimap.activeSelf)
+            {
+                panel.SetActive(false);
+            }
         }
     }
 

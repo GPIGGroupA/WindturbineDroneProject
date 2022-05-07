@@ -10,6 +10,18 @@ public class GameController : MonoBehaviour
     public ArrayList allDrones;
     public ArrayList allBoats;
 
+    private Light sun;
+
+    //Set in Editor
+    public Material darkSkybox;
+    public Material lightSkybox;
+
+    public Cubemap darkCubemap;
+    public Cubemap lightCubemap;
+
+    private GameObject rainStorm;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -19,6 +31,11 @@ public class GameController : MonoBehaviour
         allHubTurbines = new ArrayList();
         allDrones = new ArrayList();
         allBoats = new ArrayList();
+
+        sun = GameObject.FindGameObjectWithTag("Sun").GetComponent<Light>();
+
+        rainStorm = GameObject.FindGameObjectWithTag("RainStorm");
+        rainStorm.SetActive(false);
 
         UpdateAllEntityReferences();
         
@@ -41,6 +58,39 @@ public class GameController : MonoBehaviour
         allHubTurbines.AddRange(GameObject.FindGameObjectsWithTag("HubTurbine"));
         allDrones.AddRange(GameObject.FindGameObjectsWithTag("Drone"));
         allBoats.AddRange(GameObject.FindGameObjectsWithTag("Boat"));
+    }
+
+    public void ToggleStorm()
+    {
+        if (rainStorm.activeSelf)
+        {
+            rainStorm.SetActive(false);
+            RenderSettings.skybox = lightSkybox;
+            RenderSettings.customReflection = lightCubemap;
+            ChangeSunColour();
+        }
+        else 
+        {
+            rainStorm.SetActive(true);
+            RenderSettings.skybox = darkSkybox;
+            RenderSettings.customReflection = darkCubemap;
+            ChangeSunColour();
+        }
+    }
+
+    private void ChangeSunColour() 
+    {
+        while (sun.intensity != 1 || sun.intensity != 0)
+        {
+            if (rainStorm.activeSelf)
+            {
+                sun.intensity -= 0.05f * Time.deltaTime;
+            }
+            else 
+            {
+                sun.intensity += 0.05f * Time.deltaTime;
+            }
+        }
     }
 
     public Vector3? locationOfTurbineWithID(string id){
