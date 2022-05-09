@@ -24,6 +24,10 @@ public class Drone : MonoBehaviour {
     public bool parked = false;
     public bool charging = false;
     public bool carrying_item = false;
+    public GameObject dronePackage;
+
+    // Wind Object
+    private WindScript windScript;
 
 
     // Drone Behavouir Parameters
@@ -39,7 +43,6 @@ public class Drone : MonoBehaviour {
     private static float turnspeed = 0.5F;
     private Vector3 velocity;
 
-
     void UnityMove(Vector3 targetDirection, float deltaForcePerc){
         // Coords calc
         Vector3 nextFrameVelocity = Vector3.ClampMagnitude(
@@ -48,6 +51,12 @@ public class Drone : MonoBehaviour {
         );
         velocity = nextFrameVelocity;
         transform.position = transform.position + nextFrameVelocity*Time.deltaTime;
+
+        // Wind direction
+        Vector2 wind = windScript.getWindDir(transform.position.x, transform.position.z);
+        Vector2 reflectedWindDirection = Vector2.Reflect(wind, targetDirection);
+
+        
 
         // Roll and pitch
         Vector3 nextDronePR = targetDirection;
@@ -72,7 +81,7 @@ public class Drone : MonoBehaviour {
     }
 
     public void Start(){
-
+        windScript = GameObject.Find("Wind").GetComponent<WindScript>();
     }
 
     public void Update() 
@@ -189,11 +198,13 @@ public class Drone : MonoBehaviour {
 
     bool Deliver(){
         carrying_item= false;
+        dronePackage.SetActive(false);
         return true;
     }
 
     bool PickUp(){
         carrying_item= true;
+        dronePackage.SetActive(true);
         return true;
     }
 
