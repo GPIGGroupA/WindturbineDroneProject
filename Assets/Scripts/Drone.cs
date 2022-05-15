@@ -40,10 +40,13 @@ public class Drone : MonoBehaviour {
     // Unity Infomation
     private static float max_speed = 44f;
     private static float max_deltaforce = 1f;
-    private static float turnspeed = 0.5F;
+    private static float turnspeed = Mathf.PI;
     private Vector3 velocity;
+    private float angle = 0f;
 
-    void UnityMove(Vector3 targetDirection, float deltaForcePerc){
+    void UnityMove(Vector3 targetDirection, float deltaForcePerc, bool faceTarget, Vector3 lookatDirection){
+        lookatDirection = Vector3.right; // TODO: Remove
+
         // Coords calc
         Vector3 nextFrameVelocity = Vector3.ClampMagnitude(
             velocity + Vector3.Normalize(targetDirection)*(max_deltaforce*deltaForcePerc), 
@@ -52,25 +55,81 @@ public class Drone : MonoBehaviour {
         velocity = nextFrameVelocity;
         transform.position = transform.position + nextFrameVelocity*Time.deltaTime;
 
-        // Wind direction
+        // Angle in terms of target direction and wind
         Vector2 wind = windScript.getWindDir(transform.position.x, transform.position.z);
-        Vector2 reflectedWindDirection = Vector2.Reflect(wind, targetDirection);
+        Vector3 midVec = new Vector3(targetDirection.x, 0f, targetDirection.z); //(targetDirection*2 + new Vector3(wind.x, 0, wind.y)).normalized;
 
-        
+        float targetangle= Mathf.Clamp(deltaForcePerc * (Mathf.PI/4), 0f, Mathf.PI/4);
+        if (Vector3.Angle(targetDirection, Vector3.up) <= 15f || Vector3.Angle(targetDirection, Vector3.down) <= 15f){targetangle = 0f;}
+        angle += (targetangle - angle) > Time.deltaTime ? Time.deltaTime : (targetangle - angle);
 
-        // Roll and pitch
-        Vector3 nextDronePR = targetDirection;
-        if (Vector3.Angle(targetDirection, Vector3.down)<=90f){
-            Vector3 normal = Vector3.Normalize(targetDirection);
-            nextDronePR = Vector3.Reflect(targetDirection*-1.0f, new Vector3(normal.x, 0, normal.z));
+
+        if (midVec.magnitude > 0f){
+            Vector3 nextDirectionToLook = Vector3.RotateTowards(new Vector3(transform.forward.x, 0f, transform.forward.z), new Vector3(lookatDirection.x, 0f, lookatDirection.z), turnspeed*Time.deltaTime, 0f);
+            
+            Quaternion lookatdirectionrotation = Quaternion.LookRotation(
+                nextDirectionToLook,
+                Vector3.RotateTowards(midVec, Vector3.up, (Mathf.PI/2 - angle), 0.0f)
+            );
+            
+            // Quaternion targetdirectionrotation = Quaternion.LookRotation(
+            //     Vector3.RotateTowards(midVec, Vector3.down, angle, 0.0f),
+            //     Vector3.up
+            // );
+
+            transform.rotation = lookatdirectionrotation;
+            // transform.eulerAngles = new Vector3(targetdirectionrotation.eulerAngles.x, lookatdirectionrotation.eulerAngles.y, targetdirectionrotation.eulerAngles.z);
         }
-        nextDronePR = Vector3.Normalize(nextDronePR);
 
-        float angle= ((float) Mathf.Deg2Rad * Vector3.Angle(nextDronePR, Vector3.up) * (1-deltaForcePerc)*Mathf.PI/2) + Mathf.PI/4;
-        nextDronePR = Vector3.RotateTowards(nextDronePR, Vector3.up, angle, 1.0f);
-        Vector3 nextFrameDirection = Vector3.RotateTowards(transform.up, nextDronePR, turnspeed*Time.deltaTime, 0.0f);
-        transform.up = nextFrameDirection;
+        // Direction calculation
+        // Vector3 nextDirectionToLook = Vector3.RotateTowards(new Vector3(transform.forward.x, 0f, transform.forward.z), new Vector3(lookatDirection.x, 0f, lookatDirection.z), turnspeed*Time.deltaTime, 0f);
     }
+
+    // void UnityMove(Vector3 targetDirection, float deltaForcePerc, bool faceTarget){
+    //     // Coords calc
+    //     Vector3 nextFrameVelocity = Vector3.ClampMagnitude(
+    //         velocity + Vector3.Normalize(targetDirection)*(max_deltaforce*deltaForcePerc), 
+    //         max_speed
+    //     );
+    //     velocity = nextFrameVelocity;
+    //     transform.position = transform.position + nextFrameVelocity*Time.deltaTime;
+
+    //     // Wind direction
+    //     Vector2 wind = windScript.getWindDir(transform.position.x, transform.position.z);
+    //     // Vector2 reflectedWindDirection = Vector2.Reflect(wind, targetDirection);
+
+    //     // Mid point of reflected wind and where we want to go
+    //     Vector3 midVec = targetDirection; //(targetDirection*2 + new Vector3(wind.x, 0, wind.y)).normalized;
+
+    //     // Roll and pitch
+    //     // Vector3 targetnextDronePR = midVec;
+    //     // if (Vector3.Angle(midVec, Vector3.down)<=90f){
+    //     //     targetnextDronePR = Vector3.Reflect(midVec*-1.0f, new Vector3(midVec.x, 0, midVec.z)).normalized;
+    //     // }
+    //     // float angle= ((float) Mathf.Deg2Rad * Vector3.Angle(targetnextDronePR, Vector3.up) * (1-deltaForcePerc)*Mathf.PI/2) + Mathf.PI/4;
+
+    //     float angle= Mathf.Clamp(deltaForcePerc*(Mathf.PI/2), 0f, Mathf.PI/2);
+
+    //     // targetnextDronePR = Vector3.RotateTowards(targetnextDronePR, Vector3.up, angle, 1.0f);
+    //     // Vector3 nextFrameDirection = Vector3.RotateTowards(transform.up, targetnextDronePR, turnspeed*Time.deltaTime, 0.0f);
+
+
+    //     // transform.up = nextFrameDirection;
+
+    //     // Yaw
+    //     Vector3 lookat = new Vector3(targetDirection.x, transform.position.y, targetDirection.z);
+    //     if (lookat.magnitude > 0){
+    //         transform.rotation = Quaternion.LookRotation(
+    //             Vector3.RotateTowards(lookat, Vector3.down, angle, 0.0f), 
+    //             Vector3.up
+    //         );
+    //     }
+
+    //     // transform.rotation = Quaternion.AngleAxis(30, nextFrameDirection);
+
+    //     // transform.RotateAround(transform.position+targetDirection, transform.up, Time.deltaTime * 90f);
+    //     // transform.rotation = Quaternion.LookRotation(new Vector3(targetDirection.x, 0f, targetDirection.z).normalized, nextFrameDirection);
+    // }
 
     void OnTriggerEnter(Collider collider)
     {
@@ -165,7 +224,7 @@ public class Drone : MonoBehaviour {
                 action_stack.Add(new Action(ActionType.Land, new Vector3(home.x, Util.landing_plane, home.z)));
             }
         }
-        velocity = Vector3.Scale(velocity, new Vector3(0.99F, 0.99F, 0.99F));
+        velocity = Vector3.Scale(velocity, new Vector3(0.97F, 0.97F, 0.97F));
 
         if (!charging){
             battery_percentage-= 0.003F;
@@ -184,7 +243,8 @@ public class Drone : MonoBehaviour {
     bool TakeOff()
     {
         parked= false;
-        return GoTo(new Vector3(transform.position.x, Util.aviation_plane, transform.position.z));
+        GoTo(new Vector3(transform.position.x, Util.aviation_plane, transform.position.z));
+        return transform.position.y > Util.aviation_plane;
     }
 
     bool Land(Vector3 target)
@@ -214,7 +274,7 @@ public class Drone : MonoBehaviour {
         height_target.y = transform.position.y;
 
         transform.forward = Vector3.RotateTowards(transform.forward, height_target-transform.position, Mathf.PI/16, 1.0f);
-        UnityMove(transform.right*4+transform.forward+(Vector3.up*-0.6f), 1F);
+        UnityMove(transform.right*4+transform.forward+(Vector3.up*-0.6f), 1F, true, Vector3.zero);
 
         if (transform.position.y < 20f){
             return true;
@@ -229,10 +289,10 @@ public class Drone : MonoBehaviour {
         if (target!=null){
             Vector3 targetDirection = (Vector3) target - transform.position;
             float deltaForcePerc= Mathf.Clamp(targetDirection.magnitude/start_slowdown_dist, 0, 1);
-            UnityMove(targetDirection, deltaForcePerc);
+            UnityMove(targetDirection, deltaForcePerc, false, Vector3.zero);
         }
         else {
-            UnityMove(Vector3.up, 0f);
+            UnityMove(Vector3.up, 0f, false, Vector3.zero);
         }
     }
 
