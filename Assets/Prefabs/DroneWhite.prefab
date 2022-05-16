@@ -318,7 +318,7 @@ Transform:
   m_LocalScale: {x: 10, y: 10, z: 1}
   m_Children: []
   m_Father: {fileID: 3875315427991351033}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!212 &391652115298514046
 SpriteRenderer:
@@ -676,6 +676,7 @@ GameObject:
   - component: {fileID: 3648760056845750875}
   - component: {fileID: 4194671943272485407}
   - component: {fileID: 1073207111}
+  - component: {fileID: 661599388}
   m_Layer: 0
   m_Name: DroneWhite
   m_TagString: Drone
@@ -698,6 +699,7 @@ Transform:
   - {fileID: 1585918432887987067}
   - {fileID: 5531429262628652300}
   - {fileID: 9188182780975115621}
+  - {fileID: 4319691874137465565}
   - {fileID: 3150916308382683269}
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -797,6 +799,7 @@ MonoBehaviour:
   parked: 1
   charging: 0
   carrying_item: 0
+  dronePackage: {fileID: 0}
 --- !u!114 &1073207111
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18721,6 +18724,20 @@ MonoBehaviour:
     - {x: -0.35397643, y: 0.826453, z: 0.43780845}
     - {x: -0.2512914, y: 0.85457456, z: -0.45448318}
     - {x: -0.4391051, y: 0.77221787, z: -0.4592019}
+--- !u!114 &661599388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4507032809154786371}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 230b21730ceb0044eb09b9f0dfddd5dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  windScript: {fileID: 0}
+  recentWindDirections: []
 --- !u!1 &7121283245873038895
 GameObject:
   m_ObjectHideFlags: 0
