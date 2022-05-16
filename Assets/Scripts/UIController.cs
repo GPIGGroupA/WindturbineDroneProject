@@ -9,6 +9,7 @@ public class UIController : MonoBehaviour
     public GameController gameController;
     public GameObject panel;
     public TMP_Text gameStats;
+    public GameObject minimap;
 
     private GameObject selectedObject = null;
 
@@ -21,19 +22,37 @@ public class UIController : MonoBehaviour
         panel = GameObject.Find("DeveloperPanel");
         gameStats = GameObject.Find("GameStats").GetComponent<TMP_Text>();
         mainCamera = Camera.main.GetComponent<CameraMovement>();
+        minimap = GameObject.FindGameObjectWithTag("Minimap");
+
+        minimap.SetActive(false);
+        panel.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        ToggleMinimap();
+        ToggleDeveloperMode();
+    }
+
+    public void ToggleMinimap()
+    {
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            minimap.SetActive(minimap.activeSelf ? false : true);
+            if (panel.activeSelf && minimap.activeSelf)
+            {
+                panel.SetActive(false);
+            }
+        }
     }
 
     public void ToggleDeveloperMode()
     {
-       bool state = panel.activeSelf ? false : true;
-
-       panel.SetActive(state);
+       if (Input.GetKeyDown(KeyCode.D))
+        {
+            panel.SetActive(panel.activeSelf ? false : true);
+        }
     }
 
     public void UpdateStats()

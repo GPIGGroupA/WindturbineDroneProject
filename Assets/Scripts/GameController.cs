@@ -10,6 +10,21 @@ public class GameController : MonoBehaviour
     public ArrayList allDrones;
     public ArrayList allBoats;
 
+    private Light sun;
+
+    //Set in Editor
+    public Material darkSkybox;
+    public Material lightSkybox;
+
+    public Cubemap darkCubemap;
+    public Cubemap lightCubemap;
+
+    private GameObject rainStorm;
+    private GameObject wind;
+
+    public GameObject nuke;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -20,6 +35,13 @@ public class GameController : MonoBehaviour
         allDrones = new ArrayList();
         allBoats = new ArrayList();
 
+        sun = GameObject.FindGameObjectWithTag("Sun").GetComponent<Light>();
+
+        rainStorm = GameObject.FindGameObjectWithTag("RainStorm");
+        rainStorm.SetActive(false);
+        wind = GameObject.FindGameObjectWithTag("Wind");
+        wind.SetActive(false);
+
         UpdateAllEntityReferences();
         
     }
@@ -27,7 +49,7 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        ChangeSunColour();
     }
 
     void UpdateAllEntityReferences()
@@ -41,6 +63,47 @@ public class GameController : MonoBehaviour
         allHubTurbines.AddRange(GameObject.FindGameObjectsWithTag("HubTurbine"));
         allDrones.AddRange(GameObject.FindGameObjectsWithTag("Drone"));
         allBoats.AddRange(GameObject.FindGameObjectsWithTag("Boat"));
+    }
+
+    public void ToggleStorm()
+    {
+        if (rainStorm.activeSelf)
+        {
+            rainStorm.SetActive(false);
+            wind.SetActive(false);
+            RenderSettings.skybox = lightSkybox;
+            RenderSettings.customReflection = lightCubemap;
+        }
+        else 
+        {
+            rainStorm.SetActive(true);
+            wind.SetActive(true);
+            RenderSettings.skybox = darkSkybox;
+            RenderSettings.customReflection = darkCubemap;
+        }
+    }
+
+    private void ChangeSunColour() 
+    {
+        if (rainStorm.activeSelf && sun.intensity > 0)
+        {
+            sun.intensity -= 0.5f * Time.deltaTime;
+        }
+        else if (!rainStorm.activeSelf && sun.intensity < 1)
+        {
+            sun.intensity += Mathf.Clamp01(0.5f * Time.deltaTime);
+        }
+    }
+
+    public void DestroyWindturbine()
+    {
+        GameObject randTurbine = (GameObject)allWindTurbines[Random.Range(0, allWindTurbines.Count)];
+        Transform t = randTurbine.GetComponent<Transform>();
+
+        GameObject n = Instantiate(nuke, t.position, Quaternion.identity);
+        Destroy(randTurbine);
+
+        UpdateAllEntityReferences();
     }
 
     public Vector3? locationOfTurbineWithID(string id){

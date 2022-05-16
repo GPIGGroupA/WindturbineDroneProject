@@ -8,6 +8,11 @@ TagManager:
   - WindTurbine
   - HubTurbine
   - Boat
+  - Minimap
+  - RainStorm
+  - Sun
+  - Wind
+  - DevModeToggle
   layers:
   - Default
   - TransparentFX
@@ -15,7 +20,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - Minimap Elements
   - 
   - 
   - 
