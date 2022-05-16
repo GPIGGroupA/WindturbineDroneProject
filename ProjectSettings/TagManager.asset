@@ -12,6 +12,7 @@ TagManager:
   - RainStorm
   - Sun
   - Wind
+  - DevModeToggle
   layers:
   - Default
   - TransparentFX

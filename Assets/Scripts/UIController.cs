@@ -32,6 +32,7 @@ public class UIController : MonoBehaviour
     void Update()
     {
         ToggleMinimap();
+        ToggleDeveloperMode();
     }
 
     public void ToggleMinimap()
@@ -48,7 +49,10 @@ public class UIController : MonoBehaviour
 
     public void ToggleDeveloperMode()
     {
-       panel.SetActive(panel.activeSelf ? false : true);
+       if (Input.GetKeyDown(KeyCode.D))
+        {
+            panel.SetActive(panel.activeSelf ? false : true);
+        }
     }
 
     public void UpdateStats()

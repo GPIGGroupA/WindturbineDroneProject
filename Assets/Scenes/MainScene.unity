@@ -1481,6 +1481,7 @@ GameObject:
   m_Component:
   - component: {fileID: 409714525}
   - component: {fileID: 409714524}
+  - component: {fileID: 409714526}
   m_Layer: 0
   m_Name: GameController
   m_TagString: GameController
@@ -1519,6 +1520,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &409714526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 409714523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de4151740e9705c40b47efd531e2b350, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  turbinePrefab:
+  - {fileID: 1279876736621708387, guid: 2c9dc0d27e4e840caa19f8aada8b2d6c, type: 3}
+  - {fileID: 5819710303805995379, guid: a3810c8ec8fa1414696d59e4ffd1420d, type: 3}
 --- !u!1 &463661024
 GameObject:
   m_ObjectHideFlags: 0
