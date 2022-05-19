@@ -13,6 +13,7 @@ TagManager:
   - Sun
   - Wind
   - DevModeToggle
+  - Sea
   layers:
   - Default
   - TransparentFX

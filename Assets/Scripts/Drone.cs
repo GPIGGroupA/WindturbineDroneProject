@@ -148,6 +148,7 @@ public class Drone : MonoBehaviour {
         if (action_stack.Count != 0){
 
             bool ret= false;
+
             switch(action_stack[0].action){
 
                 case ActionType.GoTo:
@@ -278,6 +279,7 @@ public class Drone : MonoBehaviour {
             return true;
         }
         return false;
+
     }
 
 

@@ -50,6 +50,7 @@ public class GameController : MonoBehaviour
     void Update()
     {
         ChangeSunColour();
+        EasyToggleRainStorm();
     }
 
     void UpdateAllEntityReferences()
@@ -104,6 +105,28 @@ public class GameController : MonoBehaviour
         Destroy(randTurbine);
 
         UpdateAllEntityReferences();
+    }
+
+    //Emilien stuff to make filming easier
+    public void EasyToggleRainStorm()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            if (rainStorm.activeSelf)
+            {
+                rainStorm.SetActive(false);
+                wind.SetActive(false);
+                RenderSettings.skybox = lightSkybox;
+                RenderSettings.customReflection = lightCubemap;
+            }
+            else 
+            {
+                rainStorm.SetActive(true);
+                wind.SetActive(true);
+                RenderSettings.skybox = darkSkybox;
+                RenderSettings.customReflection = darkCubemap;
+            }
+        }
     }
 
     public Vector3? locationOfTurbineWithID(string id){

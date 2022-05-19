@@ -30,6 +30,37 @@ public class CameraMovement : MonoBehaviour
         {
             Follow();
         }
+
+        if(Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            selectObject();
+        }
+    }
+
+    public void selectObject()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, 10000))
+        {
+            GameObject hitObject = (GameObject)hit.transform.gameObject;
+            if (hitObject.tag == "Drone")
+            {
+                this.previousPosition = this.transform.position;
+
+                this.followTarget = hitObject;
+                this.followingObject = true;
+            }
+            else if (hitObject.tag == "Sea")
+            {
+                this.followTarget = null;
+                this.followingObject = false;
+
+                this.transform.position = this.previousPosition;
+            }
+        } 
+        
     }
 
     void Move()
