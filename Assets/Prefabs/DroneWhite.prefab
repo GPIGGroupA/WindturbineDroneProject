@@ -799,7 +799,7 @@ MonoBehaviour:
   parked: 1
   charging: 0
   carrying_item: 0
-  dronePackage: {fileID: 0}
+  dronePackage: {fileID: 7121283245873038895}
 --- !u!114 &1073207111
 MonoBehaviour:
   m_ObjectHideFlags: 0
