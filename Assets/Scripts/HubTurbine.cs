@@ -24,27 +24,27 @@ public class HubTurbine : WindTurbine
         );
         pad.holdChargingDrone(drone1);
 
-        // jobs_queue.Add(
-        //     new Job(
-        //         new Vector3(1000f, 0f, 290f),
-        //         JobType.Delivary,
-        //         1,
-        //         20,
-        //         0,
-        //         transform.position
-        //     )
-        // );
-
         jobs_queue.Add(
             new Job(
                 new Vector3(1000f, 0f, 290f),
-                JobType.Scan,
+                JobType.Delivary,
                 1,
                 20,
                 0,
                 transform.position
             )
         );
+
+        // jobs_queue.Add(
+        //     new Job(
+        //         new Vector3(1000f, 0f, 290f),
+        //         JobType.Scan,
+        //         1,
+        //         20,
+        //         0,
+        //         transform.position
+        //     )
+        // );
 
     }
 
